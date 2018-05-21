@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <string.h>
 #include <glad/glad.h>
 
 class Program {

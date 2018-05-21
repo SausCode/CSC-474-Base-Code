@@ -15,7 +15,7 @@ void main() {
     vec3 ambientColor = vec3(0);
     
     // Diffuse calculation
-//    float diffuseFactor = max(dot(lightDir, normal), 0); // Clamp to prevent color from reaching back side
+//  float diffuseFactor = max(dot(lightDir, normal), 0); // Clamp to prevent color from reaching back side
     float diffuseFactor = (dot(lightDir, normal) + 1) / 2; // Normalize so the color bleeds onto the back side
     vec3 diffuseColor = vec3(0.8, 0.2, 0.5) * diffuseFactor;
     

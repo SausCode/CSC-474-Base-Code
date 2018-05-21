@@ -16,6 +16,9 @@
 #include "Shape.h"
 #include "Camera.h"
 
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+
 using namespace std;
 using namespace glm;
 
@@ -33,7 +36,7 @@ public:
     Camera *camera = nullptr;
 
     std::shared_ptr<Shape> shape;
-    std::shared_ptr<Program> phongShader;
+    std::shared_ptr<Program> phongShader, crosshairShader;
     
     double gametime = 0;
     bool wireframeEnabled = false;
@@ -42,6 +45,10 @@ public:
     glm::vec2 mouseMoveOrigin = glm::vec2(0);
     glm::vec3 mouseMoveInitialCameraRot;
 
+	double xPosMouse, yPosMouse = 0.0;
+
+	GLuint vbo, vao;
+
     Application() {
         camera = new Camera();
     }
@@ -49,6 +56,18 @@ public:
     ~Application() {
         delete camera;
     }
+
+	void convertMousePosition(double x, double y) {
+		//Convert from window space to GL space
+		//https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
+
+		double OldRange = (WINDOW_WIDTH - 0.0);
+		double NewRange = (1.0 - 0.0);
+		xPosMouse = (((x - 0.0) * NewRange) / OldRange) + 0.0;
+
+		OldRange = (WINDOW_HEIGHT - 0.0);
+		yPosMouse = -(((y - 0.0) * NewRange) / OldRange) + 0.0;
+	}
 
     void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
         // Movement
@@ -84,6 +103,7 @@ public:
     }
     
     void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
+		convertMousePosition(xpos, ypos);
         if (mousePressed || mouseCaptured) {
             float yAngle = (xpos - mouseMoveOrigin.x) / windowManager->getWidth() * 3.14159f;
             float xAngle = (ypos - mouseMoveOrigin.y) / windowManager->getHeight() * 3.14159f;
@@ -106,6 +126,36 @@ public:
         shape->loadMesh(resourceDirectory + "/sphere.obj");
         shape->resize();
         shape->init();
+
+		//Vertices for crosshair
+		//TODO: Maybe an obj, or something fancier for a nice crosshair
+		GLfloat vertices_position[24] = {
+			0.0, 0.0,
+			0.5, 0.0,
+			0.5, 0.5,
+
+			0.0, 0.0,
+			0.0, 0.5,
+			-0.5, 0.5,
+
+			0.0, 0.0,
+			-0.5, 0.0,
+			-0.5, -0.5,
+
+			0.0, 0.0,
+			0.0, -0.5,
+			0.5, -0.5,
+		};
+
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+		glGenBuffers(1, &vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_position), vertices_position, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glEnableVertexAttribArray(0);
     }
     
     void init(const std::string& resourceDirectory) {
@@ -118,6 +168,11 @@ public:
         phongShader = std::make_shared<Program>();
         phongShader->setShaderNames(resourceDirectory + "/phong.vert", resourceDirectory + "/phong.frag");
         phongShader->init();
+
+		crosshairShader = std::make_shared<Program>();
+		crosshairShader->setShaderNames(resourceDirectory + "/crosshair.vert", resourceDirectory + "/crosshair.frag");
+		crosshairShader->init();
+
     }
     
     glm::mat4 getPerspectiveMatrix() {
@@ -144,10 +199,19 @@ public:
         /* DRAW SHAPE */
         /**************/
         M = glm::translate(glm::mat4(1), glm::vec3(0, 0, -3));
+
         phongShader->bind();
         phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
         shape->draw(phongShader, false);
         phongShader->unbind();
+
+		crosshairShader->bind();
+		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse*3, yPosMouse*3, -3));
+		crosshairShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		glBindVertexArray(vao);
+		glDrawArrays(GL_TRIANGLES, 0, 12);
+		//shape->draw(crosshairShader, false);
+		crosshairShader->unbind();
     }
 };
 
@@ -161,7 +225,7 @@ int main(int argc, char **argv) {
 
     // Initialize window.
     WindowManager * windowManager = new WindowManager();
-    windowManager->init(800, 600);
+    windowManager->init(WINDOW_WIDTH, WINDOW_HEIGHT);
     windowManager->setEventCallbacks(application);
     application->windowManager = windowManager;
 
@@ -171,6 +235,7 @@ int main(int argc, char **argv) {
     
     // Loop until the user closes the window.
     while (!glfwWindowShouldClose(windowManager->getHandle())) {
+
         // Update camera position.
         application->camera->update();
         // Render scene.
