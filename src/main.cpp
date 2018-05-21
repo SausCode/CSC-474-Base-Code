@@ -71,10 +71,11 @@ public:
 
     void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
         // Movement
+        /*
         if (key == GLFW_KEY_W && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * -0.2f;
-        if (key == GLFW_KEY_S && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * 0.2f;
-        if (key == GLFW_KEY_A && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * -0.2f;
-        if (key == GLFW_KEY_D && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * 0.2f;
+        if (key == GLFW_KEY_S && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * 0.2f; */
+        if (key == GLFW_KEY_A && action != GLFW_REPEAT) camera->pos.x = (action == GLFW_PRESS) * -0.2f;
+        if (key == GLFW_KEY_D && action != GLFW_REPEAT) camera->pos.x = (action == GLFW_PRESS) * 0.2f; /*
         // Rotation
         if (key == GLFW_KEY_I && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * 0.02f;
         if (key == GLFW_KEY_K && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * -0.02f;
@@ -92,8 +93,8 @@ public:
             mouseCaptured = !mouseCaptured;
             glfwSetInputMode(window, GLFW_CURSOR, mouseCaptured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
             resetMouseMoveInitialValues(window);
-        }
-    }
+        } */
+}
 
     void mouseCallback(GLFWwindow *window, int button, int action, int mods) {
         mousePressed = (action != GLFW_RELEASE);
