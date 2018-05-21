@@ -52,10 +52,11 @@ public:
 
     void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
         // Movement
+        /*
         if (key == GLFW_KEY_W && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * -0.2f;
-        if (key == GLFW_KEY_S && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * 0.2f;
-        if (key == GLFW_KEY_A && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * -0.2f;
-        if (key == GLFW_KEY_D && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * 0.2f;
+        if (key == GLFW_KEY_S && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * 0.2f; */
+        if (key == GLFW_KEY_A && action != GLFW_REPEAT) camera->pos.x = (action == GLFW_PRESS) * -0.2f;
+        if (key == GLFW_KEY_D && action != GLFW_REPEAT) camera->pos.x = (action == GLFW_PRESS) * 0.2f; /*
         // Rotation
         if (key == GLFW_KEY_I && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * 0.02f;
         if (key == GLFW_KEY_K && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * -0.02f;
@@ -73,38 +74,39 @@ public:
             mouseCaptured = !mouseCaptured;
             glfwSetInputMode(window, GLFW_CURSOR, mouseCaptured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
             resetMouseMoveInitialValues(window);
-        }
+        } */
     }
 
     void mouseCallback(GLFWwindow *window, int button, int action, int mods) {
+        /*
         mousePressed = (action != GLFW_RELEASE);
         if (action == GLFW_PRESS) {
             resetMouseMoveInitialValues(window);
-        }
+        } */
     }
     
-    void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
+    void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) { /*
         if (mousePressed || mouseCaptured) {
             float yAngle = (xpos - mouseMoveOrigin.x) / windowManager->getWidth() * 3.14159f;
             float xAngle = (ypos - mouseMoveOrigin.y) / windowManager->getHeight() * 3.14159f;
             camera->setRotation(mouseMoveInitialCameraRot + glm::vec3(-xAngle, -yAngle, 0));
-        }
+        } */
     }
 
     void resizeCallback(GLFWwindow *window, int in_width, int in_height) { }
     
     // Reset mouse move initial position and rotation
-    void resetMouseMoveInitialValues(GLFWwindow *window) {
+    void resetMouseMoveInitialValues(GLFWwindow *window) { /*
         double mouseX, mouseY;
         glfwGetCursorPos(window, &mouseX, &mouseY);
         mouseMoveOrigin = glm::vec2(mouseX, mouseY);
-        mouseMoveInitialCameraRot = camera->rot;
+        mouseMoveInitialCameraRot = camera->rot; */
     }
 
     void initGeom(const std::string& resourceDirectory) {
         shape = make_shared<Shape>();
-        shape->loadMesh(resourceDirectory + "/sphere.obj");
-        shape->resize();
+        shape->loadMesh(resourceDirectory + "/platform.obj");
+        //shape->resize();
         shape->init();
     }
     
@@ -121,9 +123,10 @@ public:
     }
     
     glm::mat4 getPerspectiveMatrix() {
-        float fov = 3.14159f / 4.0f;
-        float aspect = windowManager->getAspect();
-        return glm::perspective(fov, aspect, 0.01f, 10000.0f);
+        // Orthographic Perspective Matrix
+        float width = windowManager->getWidth();
+        float height = windowManager->getHeight();
+        return glm::ortho(-width/200.f, width/200.f, height/100.f, -height/100.f, 0.1f, 50.f);
     }
 
     void render() {
@@ -143,7 +146,8 @@ public:
         /**************/
         /* DRAW SHAPE */
         /**************/
-        M = glm::translate(glm::mat4(1), glm::vec3(0, 0, -3));
+        M = glm::rotate(M, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
+        M = glm::translate(M, glm::vec3(5.f, 7.f, 0.f));
         phongShader->bind();
         phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
         shape->draw(phongShader, false);
