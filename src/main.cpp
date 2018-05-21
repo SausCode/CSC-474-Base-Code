@@ -15,6 +15,7 @@
 #include "WindowManager.h"
 #include "Shape.h"
 #include "Camera.h"
+#include "Platform.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -35,15 +36,15 @@ public:
     WindowManager *windowManager = nullptr;
     Camera *camera = nullptr;
 
-    std::shared_ptr<Shape> shape;
+    Platform* temp;
+    Platform* temp2;
+    //std::shared_ptr<Shape> shape;
     std::shared_ptr<Program> phongShader, crosshairShader;
     
     double gametime = 0;
     bool wireframeEnabled = false;
     bool mousePressed = false;
     bool mouseCaptured = false;
-    glm::vec2 mouseMoveOrigin = glm::vec2(0);
-    glm::vec3 mouseMoveInitialCameraRot;
 
 	double xPosMouse, yPosMouse = 0.0;
 
@@ -57,25 +58,13 @@ public:
         delete camera;
     }
 
-	void convertMousePosition(double x, double y) {
-		//Convert from window space to GL space
-		//https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
-
-		double OldRange = (WINDOW_WIDTH - 0.0);
-		double NewRange = (1.0 - 0.0);
-		xPosMouse = (((x - 0.0) * NewRange) / OldRange) + 0.0;
-
-		OldRange = (WINDOW_HEIGHT - 0.0);
-		yPosMouse = -(((y - 0.0) * NewRange) / OldRange) + 0.0;
-	}
-
     void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
         // Movement
         /*
         if (key == GLFW_KEY_W && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * -0.2f;
         if (key == GLFW_KEY_S && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * 0.2f; */
-        if (key == GLFW_KEY_A && action != GLFW_REPEAT) camera->pos.x = (action == GLFW_PRESS) * -0.2f;
-        if (key == GLFW_KEY_D && action != GLFW_REPEAT) camera->pos.x = (action == GLFW_PRESS) * 0.2f; /*
+        if (key == GLFW_KEY_A && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * 2.f;
+        if (key == GLFW_KEY_D && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * -2.f; /*
         // Rotation
         if (key == GLFW_KEY_I && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * 0.02f;
         if (key == GLFW_KEY_K && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * -0.02f;
@@ -104,11 +93,15 @@ public:
     }
     
     void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
-		convertMousePosition(xpos, ypos);
+		//convertMousePosition(xpos, ypos);
+		xPosMouse = xpos - camera->pos.x;
+		yPosMouse = windowManager->getHeight() - ypos - camera->pos.y;
+
+		std::cout << "Camera x" << camera->pos.x << std::endl;
         if (mousePressed || mouseCaptured) {
-            float yAngle = (xpos - mouseMoveOrigin.x) / windowManager->getWidth() * 3.14159f;
-            float xAngle = (ypos - mouseMoveOrigin.y) / windowManager->getHeight() * 3.14159f;
-            camera->setRotation(mouseMoveInitialCameraRot + glm::vec3(-xAngle, -yAngle, 0));
+            //float yAngle = (xpos - mouseMoveOrigin.x) / windowManager->getWidth() * 3.14159f;
+            //float xAngle = (ypos - mouseMoveOrigin.y) / windowManager->getHeight() * 3.14159f;
+            //camera->setRotation(mouseMoveInitialCameraRot + glm::vec3(-xAngle, -yAngle, 0));
         }
     }
 
@@ -116,17 +109,15 @@ public:
     
     // Reset mouse move initial position and rotation
     void resetMouseMoveInitialValues(GLFWwindow *window) {
-        double mouseX, mouseY;
-        glfwGetCursorPos(window, &mouseX, &mouseY);
-        mouseMoveOrigin = glm::vec2(mouseX, mouseY);
-        mouseMoveInitialCameraRot = camera->rot;
+        //double mouseX, mouseY;
+        //glfwGetCursorPos(window, &mouseX, &mouseY);
+        //mouseMoveOrigin = glm::vec2(mouseX, mouseY);
+        //mouseMoveInitialCameraRot = camera->rot;
     }
 
     void initGeom(const std::string& resourceDirectory) {
-        shape = make_shared<Shape>();
-        shape->loadMesh(resourceDirectory + "/sphere.obj");
-        shape->resize();
-        shape->init();
+ 		temp = new Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f);
+ 		temp2 = new Platform(windowManager->getWidth(), 2*windowManager->getWidth(), 0, windowManager->getHeight()/2.f);
 
 		//Vertices for crosshair
 		//TODO: Maybe an obj, or something fancier for a nice crosshair
@@ -177,9 +168,9 @@ public:
     }
     
     glm::mat4 getPerspectiveMatrix() {
-        float fov = 3.14159f / 4.0f;
-        float aspect = windowManager->getAspect();
-        return glm::perspective(fov, aspect, 0.01f, 10000.0f);
+        float width = windowManager->getWidth();
+        float height = windowManager->getHeight();
+        return glm::ortho(0.f, width, 0.f, height, 0.01f, 100.f);
     }
 
     void render() {
@@ -203,11 +194,17 @@ public:
 
         phongShader->bind();
         phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-        shape->draw(phongShader, false);
+        //shape->draw(phongShader, false);
+        temp->draw(phongShader, false);
+        temp2->draw(phongShader, false);
+
         phongShader->unbind();
 
 		crosshairShader->bind();
-		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse*3, yPosMouse*3, -3));
+
+		
+		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse, yPosMouse, -3.f));
+		M = glm::scale(M, glm::vec3(100, 100, 1));
 		crosshairShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_TRIANGLES, 0, 12);

@@ -14,9 +14,9 @@ public:
     void update();
     glm::mat4 getViewMatrix();
     
-    glm::vec3 pos = glm::vec3(0);
+    glm::vec2 pos;
     
-    glm::vec3 vel = glm::vec3(0); // Position velocity per frame (local to camera frame)
+    glm::vec2 vel; // Position velocity per frame (local to camera frame)
     
 private:
     glm::vec3 lookVector, up;
