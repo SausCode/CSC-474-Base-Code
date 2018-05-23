@@ -5,6 +5,7 @@
 
 #include <memory>
 #include "Shape.h"
+#include "Platform.h"
 #include <glm/glm.hpp>
 
 class Player {
@@ -17,7 +18,9 @@ public:
 
 	glm::vec2 pos, vel;
 
-	bool left, right, jump;
+	bool left = false, right = false, jump = false;
+
+	Platform platform = Platform(0, 0, 0, 0);
 
 private:
 	std::shared_ptr<Shape> shape;
@@ -28,7 +31,9 @@ private:
 
 	const int WALK_VEL = 50;
 	const int JUMP_VEL = 100;
-
+	const int FRICTION = 35;
+	const int GRAVITY = 5;
+	float rotateY = 0.0;
 	const glm::vec3 scale = glm::vec3(100, 100, 50);
 };
 

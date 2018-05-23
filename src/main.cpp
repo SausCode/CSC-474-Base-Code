@@ -100,24 +100,25 @@ public:
  		
         player = new Player(100, windowManager->getHeight()/2.f + 100);
 
+		player->platform = *temp;
+
 		//Vertices for crosshair
-		//TODO: Maybe an obj, or something fancier for a nice crosshair
 		GLfloat vertices_position[24] = {
 			0.0, 0.0,
-			0.5, 0.0,
-			0.5, 0.5,
+			0.5, 0.1,
+			0.5, -0.1,
 
 			0.0, 0.0,
-			0.0, 0.5,
-			-0.5, 0.5,
+			0.1, 0.5,
+			-0.1, 0.5,
 
 			0.0, 0.0,
-			-0.5, 0.0,
-			-0.5, -0.5,
+			-0.5, 0.1,
+			-0.5, -0.1,
 
 			0.0, 0.0,
-			0.0, -0.5,
-			0.5, -0.5,
+			0.1, -0.5,
+			-0.1, -0.5,
 		};
 
 		glGenVertexArrays(1, &vao);
@@ -216,6 +217,8 @@ int main(int argc, char **argv) {
     // Initialize scene.
     application->init(resourceDir);
     application->initGeom(resourceDir);
+
+	glfwSetInputMode(application->windowManager->getHandle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     
     // Loop until the user closes the window.
     while (!glfwWindowShouldClose(windowManager->getHandle())) {
