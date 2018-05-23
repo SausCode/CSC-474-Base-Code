@@ -15,9 +15,8 @@ Platform::Platform(float _left, float _right, float _bottom, float _top) {
     shape->resize();
     shape->init();
 
-    M = glm::translate(glm::mat4(1.f), glm::vec3(left + (right - left)/2.f, top - (top - bottom)/2.f, -100.f));
+    M = glm::translate(glm::mat4(1.f), glm::vec3(left + (right - left)/2.f, top - (top - bottom)/2.f, -60.f));
     M = glm::scale(M, glm::vec3((right - left)/2.f, (top - bottom)/2.f, 50));
-    M = glm::rotate(M, glm::radians(-10.f), glm::vec3(0, 1, 0));
 }
 
 void Platform::draw(const std::shared_ptr<Program> prog, bool use_extern_texures) const {

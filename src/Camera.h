@@ -13,6 +13,7 @@ public:
     
     void update();
     glm::mat4 getViewMatrix();
+    glm::mat4 getFlatViewMatrix();
     
     glm::vec2 pos;
     

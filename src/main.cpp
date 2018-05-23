@@ -16,6 +16,7 @@
 #include "Shape.h"
 #include "Camera.h"
 #include "Platform.h"
+#include "Player.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -35,6 +36,8 @@ class Application : public EventCallbacks {
 public:
     WindowManager *windowManager = nullptr;
     Camera *camera = nullptr;
+
+    Player* player;
 
     Platform* temp;
     Platform* temp2;
@@ -59,31 +62,15 @@ public:
     }
 
     void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-        // Movement
-        /*
-        if (key == GLFW_KEY_W && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * -0.2f;
-        if (key == GLFW_KEY_S && action != GLFW_REPEAT) camera->vel.z = (action == GLFW_PRESS) * 0.2f; */
-        if (key == GLFW_KEY_A && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * 2.f;
-        if (key == GLFW_KEY_D && action != GLFW_REPEAT) camera->vel.x = (action == GLFW_PRESS) * -2.f; /*
-        // Rotation
-        if (key == GLFW_KEY_I && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * 0.02f;
-        if (key == GLFW_KEY_K && action != GLFW_REPEAT) camera->rotVel.x = (action == GLFW_PRESS) * -0.02f;
-        if (key == GLFW_KEY_J && action != GLFW_REPEAT) camera->rotVel.y = (action == GLFW_PRESS) * 0.02f;
-        if (key == GLFW_KEY_L && action != GLFW_REPEAT) camera->rotVel.y = (action == GLFW_PRESS) * -0.02f;
-        if (key == GLFW_KEY_U && action != GLFW_REPEAT) camera->rotVel.z = (action == GLFW_PRESS) * 0.02f;
-        if (key == GLFW_KEY_O && action != GLFW_REPEAT) camera->rotVel.z = (action == GLFW_PRESS) * -0.02f;
-        // Polygon mode (wireframe vs solid)
-        if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-            wireframeEnabled = !wireframeEnabled;
-            glPolygonMode(GL_FRONT_AND_BACK, wireframeEnabled ? GL_LINE : GL_FILL);
-        }
-        // Hide cursor (allows unlimited scrolling)
-        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-            mouseCaptured = !mouseCaptured;
-            glfwSetInputMode(window, GLFW_CURSOR, mouseCaptured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-            resetMouseMoveInitialValues(window);
-        } */
-}
+        if (key == GLFW_KEY_A && action == GLFW_PRESS) {player->left = true;}
+        if (key == GLFW_KEY_A && action == GLFW_RELEASE) {player->left = false;}
+
+        if (key == GLFW_KEY_D && action == GLFW_PRESS) {player->right = true;}
+        if (key == GLFW_KEY_D && action == GLFW_RELEASE) {player->right = false;}
+
+        if (key == GLFW_KEY_W && action == GLFW_PRESS) {player->jump = true;}
+        if (key == GLFW_KEY_W && action == GLFW_RELEASE) {player->jump = false;}
+    }
 
     void mouseCallback(GLFWwindow *window, int button, int action, int mods) {
         mousePressed = (action != GLFW_RELEASE);
@@ -96,13 +83,6 @@ public:
 		//convertMousePosition(xpos, ypos);
 		xPosMouse = xpos - camera->pos.x;
 		yPosMouse = windowManager->getHeight() - ypos - camera->pos.y;
-
-		std::cout << "Camera x" << camera->pos.x << std::endl;
-        if (mousePressed || mouseCaptured) {
-            //float yAngle = (xpos - mouseMoveOrigin.x) / windowManager->getWidth() * 3.14159f;
-            //float xAngle = (ypos - mouseMoveOrigin.y) / windowManager->getHeight() * 3.14159f;
-            //camera->setRotation(mouseMoveInitialCameraRot + glm::vec3(-xAngle, -yAngle, 0));
-        }
     }
 
     void resizeCallback(GLFWwindow *window, int in_width, int in_height) { }
@@ -117,7 +97,8 @@ public:
 
     void initGeom(const std::string& resourceDirectory) {
  		temp = new Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f);
- 		temp2 = new Platform(windowManager->getWidth(), 2*windowManager->getWidth(), 0, windowManager->getHeight()/2.f);
+ 		
+        player = new Player(100, windowManager->getHeight()/2.f + 100);
 
 		//Vertices for crosshair
 		//TODO: Maybe an obj, or something fancier for a nice crosshair
@@ -170,45 +151,50 @@ public:
     glm::mat4 getPerspectiveMatrix() {
         float width = windowManager->getWidth();
         float height = windowManager->getHeight();
-        return glm::ortho(0.f, width, 0.f, height, 0.01f, 100.f);
+        return glm::ortho(0.f, width, 0.f, height, -10000.f, 10000.f);
     }
 
-    void render() {
+    void update() {
         double frametime = get_last_elapsed_time();
         gametime += frametime;
 
+        camera->update();
+
+        player->update(frametime);
+    }
+
+    void render() {
         // Clear framebuffer.
         glClearColor(0.3f, 0.7f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Create the matrix stacks.
-        glm::mat4 V, M, P;
+        glm::mat4 V, V_flat, M, P;
         P = getPerspectiveMatrix();
         V = camera->getViewMatrix();
+        V_flat = camera->getFlatViewMatrix();
         M = glm::mat4(1);
         
         /**************/
         /* DRAW SHAPE */
         /**************/
-        M = glm::translate(glm::mat4(1), glm::vec3(0, 0, -3));
 
         phongShader->bind();
         phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-        //shape->draw(phongShader, false);
         temp->draw(phongShader, false);
-        temp2->draw(phongShader, false);
+        player->draw(phongShader, false);
 
         phongShader->unbind();
 
+
 		crosshairShader->bind();
 
-		
-		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse, yPosMouse, -3.f));
+		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse, yPosMouse, 99.f));
 		M = glm::scale(M, glm::vec3(100, 100, 1));
-		crosshairShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		crosshairShader->setMVP(&M[0][0], &V_flat[0][0], &P[0][0]);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_TRIANGLES, 0, 12);
-		//shape->draw(crosshairShader, false);
+
 		crosshairShader->unbind();
     }
 };
@@ -234,8 +220,7 @@ int main(int argc, char **argv) {
     // Loop until the user closes the window.
     while (!glfwWindowShouldClose(windowManager->getHandle())) {
 
-        // Update camera position.
-        application->camera->update();
+        application->update();
         // Render scene.
         application->render();
 

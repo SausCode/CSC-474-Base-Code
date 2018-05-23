@@ -20,6 +20,12 @@ void Camera::update() {
 }
 
 glm::mat4 Camera::getViewMatrix() {
-    //return glm::rotate(view, glm::radians(-10.f), glm::vec3(0, 1, 0));
-    return view;
+	glm::vec3 eye = glm::vec3(0, 0, 50);
+	glm::vec3 center = glm::vec3(-5, 0, 0);
+	glm::vec3 up = glm::vec3(0, 1, 0);
+    return glm::lookAt(eye, center, up);
+}
+
+glm::mat4 Camera::getFlatViewMatrix() {
+	return view;
 }
