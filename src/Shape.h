@@ -32,6 +32,8 @@ public:
     unsigned int *norBufID = 0;
     unsigned int *texBufID = 0;
     unsigned int *vaoID = 0;
+
+    float max_y, min_y, max_x, min_x;
 };
 
 #endif // LAB471_SHAPE_H_INCLUDED

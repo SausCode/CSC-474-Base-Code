@@ -17,6 +17,12 @@ Player::Player(float xpos, float ypos) {
     shape->loadMesh(resourceDirectory + "/firefighter.obj");
     shape->resize();
     shape->init();
+
+    hitbox.left = shape->min_x * scale.x;
+    hitbox.right = shape->max_x * scale.x;
+    hitbox.top = shape->max_y * scale.y;
+    hitbox.bottom = shape->min_y * scale.y;
+
 }
 
 void Player::update(double frametime) {
@@ -29,10 +35,9 @@ void Player::update(double frametime) {
 		vel.x -= frametime * FRICTION;
 	}
 
-	//80 is *about* half the height, and so makes him stand on top
-	//TODO: make this not a shit way to do collision detection lol
-	if (pos.y < platform.top+80) {
-		pos.y = platform.top+80;
+	if (getHitbox().bottom < platform.top) {
+		pos.y = platform.top + scale.y;
+		isJumping = false;
 	}
 	else if (pos.y > .01) {
 		vel.y -= frametime * GRAVITY;
@@ -46,11 +51,10 @@ void Player::update(double frametime) {
 		vel.x += 50 * frametime;
 		vel.x = std::min(vel.x, (float)WALK_VEL);
 	}
-	if (jump && pos.y < platform.top + 100) {
-		vel.y += frametime*JUMP_VEL;
+	if (jump && !isJumping) {
+		vel.y = JUMP_VEL;
+		isJumping = true;
 	}
-
-
 
 	pos += vel;
 	
@@ -58,11 +62,22 @@ void Player::update(double frametime) {
 	
 	M = glm::scale(M, scale);
 
-	M = glm::rotate(M, glm::radians(rotateY+=1), glm::vec3(0, 1, 0));
+	M = glm::rotate(M, glm::radians(rotateY), glm::vec3(0, 1, 0));
 }
 
 void Player::draw(const std::shared_ptr<Program> prog, bool use_extern_texures) {
 	prog->setMatrix("M", &M[0][0]);
 
 	shape->draw(prog, use_extern_texures);
+}
+
+Player::Hitbox Player::getHitbox() {
+	Player::Hitbox newHitbox;
+
+	newHitbox.left = hitbox.left + pos.x;
+	newHitbox.right = hitbox.right + pos.x;
+	newHitbox.bottom = hitbox.bottom + pos.y;
+	newHitbox.top = hitbox.top + pos.y;
+
+	return newHitbox;
 }

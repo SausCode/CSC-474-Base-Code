@@ -98,7 +98,7 @@ public:
     void initGeom(const std::string& resourceDirectory) {
  		temp = new Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f);
  		
-        player = new Player(100, windowManager->getHeight()/2.f + 100);
+        player = new Player(100, windowManager->getHeight()/2.f + 200);
 
 		player->platform = *temp;
 

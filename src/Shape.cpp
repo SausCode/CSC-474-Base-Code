@@ -152,6 +152,11 @@ void Shape::resize()
             assert(posBuf[i][3 * v + 2] >= -1.0f - epsilon);
             assert(posBuf[i][3 * v + 2] <= 1.0f + epsilon);
         }
+
+    max_y = (maxY - shiftY) * scaleY;
+    min_y = (minY - shiftY) * scaleY;
+    max_x = (maxZ - shiftZ) * scaleZ;
+    min_x = (minZ - shiftZ) * scaleZ;
 }
 
 void Shape::init()
@@ -159,8 +164,6 @@ void Shape::init()
     for (int i = 0; i < obj_count; i++)
 
     {
-
-
         // Initialize the vertex array object
         glGenVertexArrays(1, &vaoID[i]);
         glBindVertexArray(vaoID[i]);

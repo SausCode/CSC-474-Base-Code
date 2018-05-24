@@ -9,12 +9,18 @@
 #include <glm/glm.hpp>
 
 class Player {
+	struct Hitbox {
+		float left, right, bottom, top;
+	};
+
 public:
 	Player(float xpos, float ypos);
 
 	void draw(const std::shared_ptr<Program> prog, bool use_extern_texures);
 
 	void update(double frametime);
+
+	Hitbox getHitbox();
 
 	glm::vec2 pos, vel;
 
@@ -27,14 +33,16 @@ private:
 
 	glm::mat4 M;
 
-	bool isJumping;
+	bool isJumping = false;
 
-	const int WALK_VEL = 50;
-	const int JUMP_VEL = 100;
+	const int WALK_VEL = 8;
+	const int JUMP_VEL = 10;
 	const int FRICTION = 35;
-	const int GRAVITY = 5;
-	float rotateY = 0.0;
+	const int GRAVITY = 10;
+	float rotateY = 90.0;
 	const glm::vec3 scale = glm::vec3(100, 100, 50);
+
+	Hitbox hitbox;
 };
 
 #endif
