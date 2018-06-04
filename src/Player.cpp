@@ -26,6 +26,15 @@ Player::Player(float xpos, float ypos) {
 }
 
 void Player::update(double frametime) {
+
+	if (reset) {
+		//Resets player back to start
+		pos.x = platforms[0].left;
+		pos.y = platforms[0].top;
+		vel.x = 0;
+		vel.y = 0;
+	}
+
 	vel.y -= frametime * GRAVITY;
 
 	// Update velocity based on controls

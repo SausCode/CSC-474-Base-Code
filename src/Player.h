@@ -29,7 +29,7 @@ public:
 
 	glm::vec2 pos, vel;
 
-	bool left = false, right = false, jump = false;
+	bool left = false, right = false, jump = false, reset = false;
 
 	std::vector<Platform> platforms;
 

@@ -17,6 +17,7 @@
 #include "Camera.h"
 #include "Platform.h"
 #include "Player.h"
+#include "Water.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -40,7 +41,8 @@ public:
     Player* player;
 
     std::vector<Platform> platforms;
-    std::shared_ptr<Program> phongShader, crosshairShader;
+	std::vector<Water> waterDroplets;
+    std::shared_ptr<Program> phongShader, crosshairShader, waterShader;
     
     double gametime = 0;
     bool wireframeEnabled = false;
@@ -50,6 +52,10 @@ public:
 	double xPosMouse, yPosMouse = 0.0;
 
 	GLuint vbo, vao;
+
+	GLuint waterTexture;
+
+	std::shared_ptr<Shape> sphere;
 
     Application() {
         camera = new Camera();
@@ -68,11 +74,15 @@ public:
 
         if (key == GLFW_KEY_W && action == GLFW_PRESS) {player->jump = true;}
         if (key == GLFW_KEY_W && action == GLFW_RELEASE) {player->jump = false;}
+
+		if (key == GLFW_KEY_R && action == GLFW_PRESS) { player->reset = true; }
+		if (key == GLFW_KEY_R && action == GLFW_RELEASE) { player->reset = false; }
     }
 
     void mouseCallback(GLFWwindow *window, int button, int action, int mods) {
         mousePressed = (action != GLFW_RELEASE);
         if (action == GLFW_PRESS) {
+			waterDroplets.push_back(Water(vec3(player->pos,-5), vec3(xPosMouse, yPosMouse, -5), 50, sphere));
             resetMouseMoveInitialValues(window);
         }
     }
@@ -94,12 +104,20 @@ public:
     }
 
     void initGeom(const std::string& resourceDirectory) {
+		//Create Platforms
         platforms.push_back(Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f));
         platforms.push_back(Platform(windowManager->getWidth() / 2.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 4.f));
+		platforms.push_back(Platform(windowManager->getWidth() / 2.f + windowManager->getWidth() / 4.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 2.f));
  		
+		//Create Player
         player = new Player(100, windowManager->getHeight()/2.f + 200);
-
 		player->platforms = platforms;
+
+		//Load Sphere
+		sphere = std::make_shared<Shape>();
+		sphere->loadMesh(resourceDirectory + "/sphere.obj");
+		sphere->resize();
+		sphere->init();
 
 		//Vertices for crosshair
 		GLfloat vertices_position[24] = {
@@ -129,6 +147,29 @@ public:
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 		glEnableVertexAttribArray(0);
+
+		//Water Texture Loading Stuff
+		int width, height, channels;
+		char filepath[1000];
+		//texture 1
+		string str = resourceDirectory + "/water_droplet.png";
+		strcpy(filepath, str.c_str());
+		unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
+		glGenTextures(1, &waterTexture);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, waterTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		GLuint Tex1Location = glGetUniformLocation(waterShader->getPID(), "tex");//tex, tex2... sampler in the fragment shader
+		GLuint Tex2Location = glGetUniformLocation(waterShader->getPID(), "tex2");
+		glUseProgram(waterShader->getPID());
+		glUniform1i(Tex1Location, 0);
+		glUniform1i(Tex2Location, 1);
     }
     
     void init(const std::string& resourceDirectory) {
@@ -146,6 +187,10 @@ public:
 		crosshairShader->setShaderNames(resourceDirectory + "/crosshair.vert", resourceDirectory + "/crosshair.frag");
 		crosshairShader->init();
 
+		waterShader = std::make_shared<Program>();
+		waterShader->setShaderNames(resourceDirectory + "/water.vert", resourceDirectory + "/water.frag");
+		waterShader->init();
+
     }
     
     glm::mat4 getPerspectiveMatrix() {
@@ -161,6 +206,10 @@ public:
         camera->update();
 
         player->update(frametime);
+
+		for (unsigned int i = 0; i < waterDroplets.size(); i++) {
+			waterDroplets[i].update(frametime);
+		}
     }
 
     void render() {
@@ -186,6 +235,17 @@ public:
         for (unsigned int i = 0; i < platforms.size(); i++) {
             platforms[i].draw(phongShader, false);
         }
+
+		// Draw Water Droplets
+		for (unsigned int i = 0; i < waterDroplets.size(); i++) {
+			if (waterDroplets[i].pos.y < 0) {
+				//Get rid of the ones we can't see!!!!!
+				waterDroplets.erase(waterDroplets.begin() + i);
+				continue;
+			}
+			
+			waterDroplets[i].draw(waterShader, false, waterTexture);
+		}
 
         // Draw player
         player->draw(phongShader, false);
