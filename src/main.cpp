@@ -39,9 +39,7 @@ public:
 
     Player* player;
 
-    Platform* temp;
-    Platform* temp2;
-    //std::shared_ptr<Shape> shape;
+    std::vector<Platform> platforms;
     std::shared_ptr<Program> phongShader, crosshairShader;
     
     double gametime = 0;
@@ -96,11 +94,12 @@ public:
     }
 
     void initGeom(const std::string& resourceDirectory) {
- 		temp = new Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f);
+        platforms.push_back(Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f));
+        platforms.push_back(Platform(windowManager->getWidth() / 2.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 4.f));
  		
         player = new Player(100, windowManager->getHeight()/2.f + 200);
 
-		player->platform = *temp;
+		player->platforms = platforms;
 
 		//Vertices for crosshair
 		GLfloat vertices_position[24] = {
@@ -182,7 +181,13 @@ public:
 
         phongShader->bind();
         phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-        temp->draw(phongShader, false);
+
+        // Draw platforms
+        for (unsigned int i = 0; i < platforms.size(); i++) {
+            platforms[i].draw(phongShader, false);
+        }
+
+        // Draw player
         player->draw(phongShader, false);
 
         phongShader->unbind();
