@@ -18,6 +18,7 @@
 #include "Platform.h"
 #include "Player.h"
 #include "Water.h"
+#include "Fire.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -42,7 +43,7 @@ public:
 
     std::vector<Platform> platforms;
 	std::vector<Water> waterDroplets;
-    std::shared_ptr<Program> phongShader, crosshairShader, waterShader;
+    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader;
     
     double gametime = 0;
     bool wireframeEnabled = false;
@@ -54,6 +55,10 @@ public:
 	GLuint vbo, vao;
 
 	GLuint waterTexture;
+
+    GLuint fireVAO, fireVBO;
+
+    Fire temp;
 
 	std::shared_ptr<Shape> sphere;
 
@@ -165,11 +170,14 @@ public:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		GLuint Tex1Location = glGetUniformLocation(waterShader->getPID(), "tex");//tex, tex2... sampler in the fragment shader
-		GLuint Tex2Location = glGetUniformLocation(waterShader->getPID(), "tex2");
+		//GLuint Tex1Location = glGetUniformLocation(waterShader->getPID(), "tex");//tex, tex2... sampler in the fragment shader
+		//GLuint Tex2Location = glGetUniformLocation(waterShader->getPID(), "tex2");
 		glUseProgram(waterShader->getPID());
-		glUniform1i(Tex1Location, 0);
-		glUniform1i(Tex2Location, 1);
+		//glUniform1i(Tex1Location, 0);
+		//glUniform1i(Tex2Location, 1);
+
+        temp.init();
+        temp.init_texture(resourceDirectory);
     }
     
     void init(const std::string& resourceDirectory) {
@@ -191,6 +199,9 @@ public:
 		waterShader->setShaderNames(resourceDirectory + "/water.vert", resourceDirectory + "/water.frag");
 		waterShader->init();
 
+        fireShader = std::make_shared<Program>();
+        fireShader->setShaderNames(resourceDirectory + "/fire.vert", resourceDirectory + "/fire.frag");
+        fireShader->init();
     }
     
     glm::mat4 getPerspectiveMatrix() {
@@ -210,6 +221,8 @@ public:
 		for (unsigned int i = 0; i < waterDroplets.size(); i++) {
 			waterDroplets[i].update(frametime);
 		}
+
+        temp.update(frametime);
     }
 
     void render() {
@@ -227,6 +240,9 @@ public:
         /**************/
         /* DRAW SHAPE */
         /**************/
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         phongShader->bind();
         phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
@@ -262,6 +278,13 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, 12);
 
 		crosshairShader->unbind();
+
+
+        fireShader->bind();
+        fireShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        temp.draw(fireShader);
+
+        fireShader->unbind();
     }
 };
 
