@@ -17,8 +17,8 @@ vec3 ld = normalize(vertex_pos - lp);
 float diffuse = dot(n,ld);
 
 vec4 tcol = texture(tex, vertex_tex);
-color = tcol;
-color.rgb = vec3(0,0,1);
+color.rgb = vec3(255,218,185);
+//color = tcol;
 //color.a = (color.r + color.g + color.b)/3.;
 }
 

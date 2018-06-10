@@ -43,7 +43,7 @@ public:
 
     std::vector<Platform> platforms;
 	std::vector<Water> waterDroplets;
-    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader;
+    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader, playerShader;
     
     double gametime = 0;
     bool wireframeEnabled = false;
@@ -82,15 +82,21 @@ public:
 
 		if (key == GLFW_KEY_R && action == GLFW_PRESS) { player->reset = true; }
 		if (key == GLFW_KEY_R && action == GLFW_RELEASE) { player->reset = false; }
+
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) { addWaterDrops(); }
     }
 
     void mouseCallback(GLFWwindow *window, int button, int action, int mods) {
         mousePressed = (action != GLFW_RELEASE);
         if (action == GLFW_PRESS) {
-			waterDroplets.push_back(Water(vec3(player->pos,-5), vec3(xPosMouse, yPosMouse, -5), 50, sphere));
-            resetMouseMoveInitialValues(window);
+			addWaterDrops();
+			resetMouseMoveInitialValues(window);
         }
     }
+
+	void addWaterDrops() {
+		waterDroplets.push_back(Water(vec3(player->pos.x, player->pos.y+50, -5), vec3(xPosMouse, yPosMouse, -5), 50, sphere));
+	}
     
     void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
 		//convertMousePosition(xpos, ypos);
@@ -112,7 +118,7 @@ public:
 		//Create Platforms
         platforms.push_back(Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f));
         platforms.push_back(Platform(windowManager->getWidth() / 2.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 4.f));
-		platforms.push_back(Platform(windowManager->getWidth() / 2.f + windowManager->getWidth() / 4.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 2.f));
+		platforms.push_back(Platform(windowManager->getWidth() / 2.f + windowManager->getWidth() / 4.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 3.f));
  		
 		//Create Player
         player = new Player(100, windowManager->getHeight()/2.f + 200);
@@ -120,7 +126,7 @@ public:
 
 		//Load Sphere
 		sphere = std::make_shared<Shape>();
-		sphere->loadMesh(resourceDirectory + "/sphere.obj");
+		sphere->loadMesh(resourceDirectory + "/raindrop.obj");
 		sphere->resize();
 		sphere->init();
 
@@ -199,9 +205,14 @@ public:
 		waterShader->setShaderNames(resourceDirectory + "/water.vert", resourceDirectory + "/water.frag");
 		waterShader->init();
 
+
         fireShader = std::make_shared<Program>();
         fireShader->setShaderNames(resourceDirectory + "/fire.vert", resourceDirectory + "/fire.frag");
         fireShader->init();
+
+		playerShader = std::make_shared<Program>();
+		playerShader->setShaderNames(resourceDirectory + "/player.vert", resourceDirectory + "/player.frag");
+		playerShader->init();
     }
     
     glm::mat4 getPerspectiveMatrix() {
@@ -251,7 +262,18 @@ public:
         for (unsigned int i = 0; i < platforms.size(); i++) {
             platforms[i].draw(phongShader, false);
         }
+		phongShader->unbind();
 
+		phongShader->bind();
+		phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		// Draw player
+		player->draw(phongShader, false);
+		phongShader->unbind();
+
+		waterShader->bind();
+		waterShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, waterTexture);
 		// Draw Water Droplets
 		for (unsigned int i = 0; i < waterDroplets.size(); i++) {
 			if (waterDroplets[i].pos.y < 0) {
@@ -259,24 +281,16 @@ public:
 				waterDroplets.erase(waterDroplets.begin() + i);
 				continue;
 			}
-			
-			waterDroplets[i].draw(waterShader, false, waterTexture);
+			waterDroplets[i].draw(waterShader, false);
 		}
-
-        // Draw player
-        player->draw(phongShader, false);
-
-        phongShader->unbind();
-
+		waterShader->unbind();
 
 		crosshairShader->bind();
-
 		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse, yPosMouse, 99.f));
-		M = glm::scale(M, glm::vec3(100, 100, 1));
+		M = glm::scale(M, glm::vec3(50, 50, 1));
 		crosshairShader->setMVP(&M[0][0], &V_flat[0][0], &P[0][0]);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_TRIANGLES, 0, 12);
-
 		crosshairShader->unbind();
 
 
