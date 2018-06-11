@@ -3,7 +3,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cstdlib>
 #include <iostream>
+#if defined(WIN32)
+#include <ctgmath>
+#else
 #include <tgmath.h>
+#endif
+
 
 Water::Water(glm::vec2 playerPos, glm::vec2 mousePos, std::shared_ptr<Shape> &_shape) {
 	pos = playerPos;

@@ -118,6 +118,7 @@ public:
 		//Create Player
         player = new Player(100, windowManager->getHeight()/2.f + 200);
 		player->platforms = platforms;
+		player->loadAnimations(resourceDirectory + "/Animations");
 
 		//Load Raindrop
 		raindrop = std::make_shared<Shape>();
@@ -203,6 +204,7 @@ public:
 		playerShader = std::make_shared<Program>();
 		playerShader->setShaderNames(resourceDirectory + "/player.vert", resourceDirectory + "/player.frag");
 		playerShader->init();
+		playerShader->addUniform("Manim");
 
         healthbarShader = std::make_shared<Program>();
         healthbarShader->setShaderNames(resourceDirectory + "/healthbar.vert", resourceDirectory + "/healthbar.frag");
@@ -243,7 +245,7 @@ public:
                 continue;
             }
         }
-
+		player->updatePlayerAnimation(frametime);
         healthbar->update(player->health);
     }
 
@@ -258,6 +260,20 @@ public:
         V = camera->getViewMatrix();
         V_flat = camera->getFlatViewMatrix();
         M = glm::mat4(1);
+
+		glm::mat4 TransX = glm::translate(glm::mat4(1.0f), glm::vec3(player->pos.x, player->pos.y, 0.0f));
+		glm::mat4 TransZ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -8));
+		glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.2f, 0.2f));
+		glm::mat4 rotateY = glm::rotate(glm::mat4(1.0f), glm::radians(-90.f), vec3(0, 1, 0));
+		M = TransX * TransZ * S;
+		M = M * rotateY;
+
+		//Draw PLAYER SKELETON
+		playerShader->bind();
+		playerShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		player->draw(playerShader, false);
+
+		playerShader->unbind();
         
         /**************/
         /* DRAW SHAPE */
