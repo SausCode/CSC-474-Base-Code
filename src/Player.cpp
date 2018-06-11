@@ -18,17 +18,13 @@ Player::Player(float xpos, float ypos) {
     shape->loadMesh(resourceDirectory + "/firefighter.obj");
     shape->resize();
     shape->init();
-
-    hitbox.left = shape->min_x * scale.x;
-    hitbox.right = shape->max_x * scale.x;
-    hitbox.top = shape->max_y * scale.y;
-    hitbox.bottom = shape->min_y * scale.y;
 }
 
 void Player::loadAnimations(const std::string& animationDirectory) {
 	//Load player animations
 	//readtobone(animationDirectory + "/Walking with CannonChar00.fbx", &root, &all_animation);
 	readtobone(animationDirectory + "/Walk.fbx", &root, &all_animation);
+	readtobone(animationDirectory + "/run.fbx", NULL, &all_animation);
 	root->set_animations(&all_animation, animmat, animmatsize);
 
 	//generate the VAO
@@ -57,6 +53,12 @@ void Player::loadAnimations(const std::string& animationDirectory) {
 	glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, 0, (void*)0);
 
 	glBindVertexArray(0);
+
+	//Setup hitboxes
+	hitbox.left = shape->min_x * scale.x;
+	hitbox.right = shape->max_x * scale.x;
+	hitbox.top = shape->max_y * scale.y;
+	hitbox.bottom = shape->min_y * scale.y;
 }
 
 void Player::updatePlayerAnimation(double frametime) {
@@ -68,22 +70,41 @@ void Player::updatePlayerAnimation(double frametime) {
 	for (int ii = 0; ii < 200; ii++)
 		animmat[ii] = mat4(1);
 
-	static int current_animation = 0;
-	static int next_animation = 0;
-
+	static int current_animation = 1;
+	static int next_animation = 1;
 
 	//animation frame system
 	int anim_step_width_ms = root->getDuration(next_animation) / root->getKeyFrameCount(next_animation);
 	static int frame = 0;
-	if (totaltime_untilframe_ms >= anim_step_width_ms) {
-		totaltime_untilframe_ms = 0;
-		frame++;
+	if (vel.x == 0) {
+		frame = 0;
+	}
+	else {
+		if (totaltime_untilframe_ms >= anim_step_width_ms) {
+			totaltime_untilframe_ms = 0;
+			if (vel.x > speedEpsilon) {
+				frame++;
+			}
+			else {
+				frame--;
+				if (frame < 0) {
+					frame = root->animation[next_animation]->frames - 1;
+				}
+			}
+		}
+
+		if (frame >= root->animation[next_animation]->frames - 1) {
+			if (vel.x > speedEpsilon) {
+				frame = 0;
+			}
+			else {
+				frame = root->animation[next_animation]->frames - 1;
+			}
+			
+			current_animation = next_animation;
+		}
 	}
 
-	if (frame >= root->animation[next_animation]->frames - 1) {
-		frame = 0;
-		current_animation = next_animation;
-	}
 	root->play_animation(frame, current_animation, next_animation);
 }
 

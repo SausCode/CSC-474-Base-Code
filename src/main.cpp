@@ -261,13 +261,6 @@ public:
         V_flat = camera->getFlatViewMatrix();
         M = glm::mat4(1);
 
-		glm::mat4 TransX = glm::translate(glm::mat4(1.0f), glm::vec3(player->pos.x, player->pos.y, 0.0f));
-		glm::mat4 TransZ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -8));
-		glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.2f, 0.2f));
-		glm::mat4 rotateY = glm::rotate(glm::mat4(1.0f), glm::radians(-90.f), vec3(0, 1, 0));
-		M = TransX * TransZ * S;
-		M = M * rotateY;
-
 		//Draw PLAYER SKELETON
 		playerShader->bind();
 		playerShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);

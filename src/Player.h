@@ -48,6 +48,8 @@ private:
 
 	bool isJumping = false;
 
+	float speedEpsilon = .1;
+
 	const int WALK_VEL = 8;
 	const int JUMP_VEL = 10;
 	const int FRICTION = 45;
