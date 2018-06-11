@@ -77,30 +77,16 @@ void Player::updatePlayerAnimation(double frametime) {
 	int anim_step_width_ms = root->getDuration(next_animation) / root->getKeyFrameCount(next_animation);
 	static int frame = 0;
 	if (vel.x == 0) {
-		frame = 0;
+		/*frame = 0;*/
 	}
 	else {
 		if (totaltime_untilframe_ms >= anim_step_width_ms) {
 			totaltime_untilframe_ms = 0;
-			if (vel.x > speedEpsilon) {
-				frame++;
-			}
-			else {
-				frame--;
-				if (frame < 0) {
-					frame = root->animation[next_animation]->frames - 1;
-				}
-			}
+			frame++;
 		}
 
 		if (frame >= root->animation[next_animation]->frames - 1) {
-			if (vel.x > speedEpsilon) {
-				frame = 0;
-			}
-			else {
-				frame = root->animation[next_animation]->frames - 1;
-			}
-			
+			frame = 0;
 			current_animation = next_animation;
 		}
 	}
@@ -170,7 +156,23 @@ void Player::update(double frametime) {
 	
 	M = glm::translate(glm::mat4(1), glm::vec3(pos, -10.f));
 
-	M = glm::rotate(M, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	static bool lastLeft = false;
+
+	//Left
+	if (lastLeft) {
+		M = glm::rotate(M, glm::radians(-rotateY), glm::vec3(0, 1, 0));
+	}
+	//Right
+	else if(!lastLeft){
+		M = glm::rotate(M, glm::radians(rotateY), glm::vec3(0, 1, 0));
+	}
+
+	if (left) {
+		lastLeft = true;
+	}
+	else if (right) {
+		lastLeft = false;
+	}
 
 	M = glm::scale(M, vec3(.2, .2, .2));
 }

@@ -52,7 +52,7 @@ private:
 
 	const int WALK_VEL = 8;
 	const int JUMP_VEL = 10;
-	const int FRICTION = 45;
+	const int FRICTION = 0;
 	const int GRAVITY = 20;
 	float rotateY = -90.0;
 	const glm::vec3 scale = glm::vec3(100, 100, 50);

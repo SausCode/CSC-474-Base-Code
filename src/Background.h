@@ -37,10 +37,10 @@ private:
 	};
 
 	GLfloat texBuf[8] = {
-		0.0, 1.4,
-		8.0, 1.4,
-		8.0, 0.2,
-		0.0, 0.2,
+		0.0f, 1.4f,
+		8.0f, 1.4f,
+		8.0f, 0.2f,
+		0.0f, 0.2f,
 	};
 
 	std::vector<GLfloat> posBuf;

@@ -281,8 +281,6 @@ public:
 
 		waterShader->bind();
 		waterShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, waterTexture);
 		// Draw Water Droplets
 		for (unsigned int i = 0; i < waterDroplets.size(); i++) {
 			if (waterDroplets[i].pos.y < 0) {

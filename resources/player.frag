@@ -27,5 +27,5 @@ void main() {
     //vec3 specularColor = vec3(1) * specularFactor * specularStrength;
 
     //color = vec4(ambientColor + diffuseColor + specularColor, 1);
-    color = vec4(0, 0, 0, 1);
+    color = vec4(1, 1, 1, 1);
 }
