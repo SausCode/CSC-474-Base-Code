@@ -1,0 +1,9 @@
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/CMakeFiles/lab.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/CMakeFiles/INSTALL.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/ext/glfw-3.3-prerelease/debug/CMakeFiles/uninstall.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/ext/glfw-3.3-prerelease/debug/CMakeFiles/INSTALL.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/ext/glfw-3.3-prerelease/debug/CMakeFiles/ALL_BUILD.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/ext/glfw-3.3-prerelease/debug/src/CMakeFiles/glfw.dir
+C:/Users/johnc/source/repos/CSC-474-Final-Project/build/ext/glfw-3.3-prerelease/debug/src/CMakeFiles/INSTALL.dir

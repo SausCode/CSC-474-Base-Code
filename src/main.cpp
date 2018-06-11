@@ -290,12 +290,6 @@ public:
         }
 		phongShader->unbind();
 
-		phongShader->bind();
-		phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-		// Draw player
-		player->draw(phongShader, false);
-		phongShader->unbind();
-
 		waterShader->bind();
 		waterShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 		glActiveTexture(GL_TEXTURE0);
