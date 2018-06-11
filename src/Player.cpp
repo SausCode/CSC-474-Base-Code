@@ -157,14 +157,18 @@ void Player::update(double frametime) {
 	M = glm::translate(glm::mat4(1), glm::vec3(pos, -10.f));
 
 	static bool lastLeft = false;
-
+	static float rotateAngleNegative = 0.0;
+	static float rotateAnglePositive = 0.0;
 	//Left
 	if (lastLeft) {
-		M = glm::rotate(M, glm::radians(-rotateY), glm::vec3(0, 1, 0));
+		rotateAnglePositive = 0.0;
+		//Kinda arbitrary values but I think it looks good
+		M = glm::rotate(M, glm::radians(std::min(-rotateY, (float)std::pow(rotateAngleNegative -=-1,1.5))), glm::vec3(0, 1, 0));
 	}
 	//Right
 	else if(!lastLeft){
-		M = glm::rotate(M, glm::radians(rotateY), glm::vec3(0, 1, 0));
+		rotateAngleNegative = 0.0;
+		M = glm::rotate(M, glm::radians(std::max(rotateY, -(float)std::pow(rotateAnglePositive -= -1, 1.5))), glm::vec3(0, 1, 0));
 	}
 
 	if (left) {
