@@ -115,6 +115,7 @@ public:
 		//Create Player
         player = new Player(100, windowManager->getHeight()/2.f + 200);
 		player->platforms = platforms;
+		player->loadAnimations(resourceDirectory + "/Animations");
 
 		//Load Raindrop
 		raindrop = std::make_shared<Shape>();
@@ -185,6 +186,7 @@ public:
 		playerShader = std::make_shared<Program>();
 		playerShader->setShaderNames(resourceDirectory + "/player.vert", resourceDirectory + "/player.frag");
 		playerShader->init();
+		playerShader->addUniform("Manim");
 
         healthbarShader = std::make_shared<Program>();
         healthbarShader->setShaderNames(resourceDirectory + "/healthbar.vert", resourceDirectory + "/healthbar.frag");
@@ -238,7 +240,7 @@ public:
                 continue;
             }
         }
-
+		player->updatePlayerAnimation(frametime);
         healthbar->update(player->health);
     }
 
@@ -254,6 +256,13 @@ public:
         V_flat = camera->getFlatViewMatrix();
         V_nahh = glm::mat4(1);
         M = glm::mat4(1);
+
+		//Draw PLAYER SKELETON
+		playerShader->bind();
+		playerShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		player->draw(playerShader, false);
+
+		playerShader->unbind();
         
         /**************/
         /* DRAW SHAPE */
@@ -268,12 +277,6 @@ public:
         for (unsigned int i = 0; i < platforms.size(); i++) {
             platforms[i].draw(phongShader, false);
         }
-		phongShader->unbind();
-
-		phongShader->bind();
-		phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-		// Draw player
-		player->draw(phongShader, false);
 		phongShader->unbind();
 
 		waterShader->bind();
