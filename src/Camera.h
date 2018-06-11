@@ -11,7 +11,7 @@ public:
     Camera();
     ~Camera() {}
     
-    void update();
+    void update(glm::vec2 playerPos, glm::vec2 playerVel, int screenWidth);
     glm::mat4 getViewMatrix();
     glm::mat4 getFlatViewMatrix();
     

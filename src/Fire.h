@@ -65,8 +65,6 @@ private:
     float t;
 
     glm::vec2 pos, vel;
-
-
 };
 
 #endif

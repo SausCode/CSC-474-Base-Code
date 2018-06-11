@@ -11,19 +11,22 @@ Camera::Camera() {
     vel = glm::vec2(0);
 }
 
-void Camera::update() {
-
-    pos.x += vel.x;
-    pos.y += vel.y;
-
-    view = glm::translate(view, glm::vec3(vel, 0.f));
+void Camera::update(glm::vec2 playerPos, glm::vec2 playerVel, int screenWidth) {
+    if (playerPos.x + pos.x > 0.7f * screenWidth && playerVel.x > 0.f) {
+        pos.x -= playerVel.x;
+    }
+    else if (playerPos.x + pos.x < 0.3f * screenWidth && playerVel.x < 0.f) {
+        pos.x -= playerVel.x;
+    }
 }
 
 glm::mat4 Camera::getViewMatrix() {
 	glm::vec3 eye = glm::vec3(0, 0, 50);
-	glm::vec3 center = glm::vec3(-5, 0, 0);
+	glm::vec3 center = glm::vec3(0, 0, 0);
 	glm::vec3 up = glm::vec3(0, 1, 0);
-    return glm::lookAt(eye, center, up);
+    glm::mat4 look =  glm::lookAt(eye, center, up);
+
+    return glm::translate(look, glm::vec3(pos.x, 0, 0));
 }
 
 glm::mat4 Camera::getFlatViewMatrix() {

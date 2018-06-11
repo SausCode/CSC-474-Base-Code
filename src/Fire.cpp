@@ -31,22 +31,18 @@ void Fire::init() {
 	// Copy vertex positions to buffer
 	glBufferData(GL_ARRAY_BUFFER, sizeof(posBuf), posBuf, GL_DYNAMIC_DRAW);
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
 	// Generate VBO for textures
 	glGenBuffers(1, &texBufID);
 	glBindBuffer(GL_ARRAY_BUFFER, texBufID);
 
+	// Copy vertex coordinates to buffer
 	glBufferData(GL_ARRAY_BUFFER, sizeof(texBuf), texBuf, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 	// Generate Element array
 	glGenBuffers(1, &eleBufID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
 
+	// Copy element indices to buffers
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(eleBuf), eleBuf, GL_STATIC_DRAW);
 
 	// Unbind VAO
@@ -139,11 +135,11 @@ void Fire::draw(const std::shared_ptr<Program> prog) const {
 
 void Fire::checkWaterDropletsCollision(std::vector<Water> &waterDroplets) {
 	for (unsigned int i = 0; i < waterDroplets.size(); i++) {
-		Water temp = waterDroplets[i];
+		Water::Hitbox hit = waterDroplets[i].getHitbox();
 
-		if (temp.pos.x > pos.x - size && temp.pos.x < pos.x + size) {
+		if (hit.right > pos.x - size && hit.left < pos.x + size) {
 			// Water droplet is within horizontal coordinates of fire
-			if (temp.pos.y < pos.y + size && temp.pos.y > pos.y - size) {
+			if (hit.bottom < pos.y + size && hit.top > pos.y - size) {
 				// Water droplet is within vertical coordinates of (lower half of) fire
 				waterDroplets.erase(waterDroplets.begin() + i);
 

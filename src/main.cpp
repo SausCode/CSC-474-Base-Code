@@ -20,6 +20,7 @@
 #include "Water.h"
 #include "Fire.h"
 #include "Healthbar.h"
+#include "Background.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
@@ -45,9 +46,11 @@ public:
     std::vector<Platform> platforms;
 	std::vector<Water> waterDroplets;
     std::vector<Fire> fires;
-    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader, playerShader, healthbarShader;
+    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader, playerShader, healthbarShader, backgroundShader;
 
     Healthbar *healthbar;
+
+    Background *background;
     
     double gametime = 0;
     double time_since_waterdrop = 0;
@@ -56,6 +59,7 @@ public:
     bool mouseCaptured = false;
 
 	double xPosMouse, yPosMouse = 0.0;
+    double raw_xPosMouse, raw_yPosMouse = 0.0;
 
 	GLuint vbo, vao;
 
@@ -92,23 +96,16 @@ public:
     }
 
 	void addWaterDrops() {
-		waterDroplets.push_back(Water(player->pos, vec2(xPosMouse, yPosMouse), raindrop));
+		waterDroplets.push_back(Water(player->pos, vec2(xPosMouse, yPosMouse), player->vel, raindrop, platforms));
 	}
     
     void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
-		//convertMousePosition(xpos, ypos);
-		xPosMouse = xpos - camera->pos.x;
-		yPosMouse = windowManager->getHeight() - ypos - camera->pos.y;
+		raw_xPosMouse = xpos;
+		raw_yPosMouse = windowManager->getHeight() - ypos;
     }
 
-    void resizeCallback(GLFWwindow *window, int in_width, int in_height) { }
-    
-    // Reset mouse move initial position and rotation
-    void resetMouseMoveInitialValues(GLFWwindow *window) {
-        //double mouseX, mouseY;
-        //glfwGetCursorPos(window, &mouseX, &mouseY);
-        //mouseMoveOrigin = glm::vec2(mouseX, mouseY);
-        //mouseMoveInitialCameraRot = camera->rot;
+    void resizeCallback(GLFWwindow *window, int in_width, int in_height) {
+        background = new Background(windowManager->getWidth(), windowManager->getHeight());
     }
 
     void initGeom(const std::string& resourceDirectory) {
@@ -128,6 +125,8 @@ public:
         fires.push_back(Fire(1000, windowManager->getHeight()/2.f));
 
         healthbar = new Healthbar(windowManager->getWidth() - 100);
+
+        background = new Background(windowManager->getWidth(), windowManager->getHeight());
 
 		//Vertices for crosshair
 		GLfloat vertices_position[24] = {
@@ -157,23 +156,6 @@ public:
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 		glEnableVertexAttribArray(0);
-
-		//Water Texture Loading Stuff
-		int width, height, channels;
-		char filepath[1000];
-		//texture 1
-		string str = resourceDirectory + "/water_droplet.png";
-		strcpy(filepath, str.c_str());
-		unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
-		glGenTextures(1, &waterTexture);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, waterTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
     }
     
     void init(const std::string& resourceDirectory) {
@@ -207,7 +189,11 @@ public:
         healthbarShader = std::make_shared<Program>();
         healthbarShader->setShaderNames(resourceDirectory + "/healthbar.vert", resourceDirectory + "/healthbar.frag");
         healthbarShader->init();
-    }
+
+        backgroundShader = std::make_shared<Program>();
+        backgroundShader->setShaderNames(resourceDirectory + "/background.vert", resourceDirectory + "/background.frag");
+        backgroundShader->init();
+    }   
     
     glm::mat4 getPerspectiveMatrix() {
         float width = windowManager->getWidth();
@@ -220,7 +206,12 @@ public:
         gametime += frametime;
         time_since_waterdrop += frametime;
 
-        camera->update();
+        camera->update(player->pos, player->vel, windowManager->getWidth());
+
+        xPosMouse = raw_xPosMouse - camera->pos.x;
+        yPosMouse = raw_yPosMouse - camera->pos.y;
+
+        background->update(camera->pos);
 
         player->update(frametime);
 
@@ -233,6 +224,10 @@ public:
 
 		for (unsigned int i = 0; i < waterDroplets.size(); i++) {
 			waterDroplets[i].update(frametime);
+            if (waterDroplets[i].shouldRemove) {
+                waterDroplets.erase(waterDroplets.begin() + i);
+                continue;
+            }
 		}
 
         for (unsigned int i = 0; i < fires.size(); i++) {
@@ -253,10 +248,11 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Create the matrix stacks.
-        glm::mat4 V, V_flat, M, P;
+        glm::mat4 V, V_flat, V_nahh, M, P;
         P = getPerspectiveMatrix();
         V = camera->getViewMatrix();
         V_flat = camera->getFlatViewMatrix();
+        V_nahh = glm::mat4(1);
         M = glm::mat4(1);
         
         /**************/
@@ -299,6 +295,12 @@ public:
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        backgroundShader->bind();
+        backgroundShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        background->draw(backgroundShader);
+
+        backgroundShader->unbind();
+
         fireShader->bind();
         fireShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 
@@ -309,13 +311,13 @@ public:
         fireShader->unbind();
 
         healthbarShader->bind();
-        healthbarShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        healthbarShader->setMVP(&M[0][0], &V_nahh[0][0], &P[0][0]);
         healthbar->draw(healthbarShader);
 
         healthbarShader->unbind();
 
 		crosshairShader->bind();
-		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse, yPosMouse, 99.f));
+		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse + camera->pos.x, yPosMouse + camera->pos.y, 99.f));
 		M = glm::scale(M, glm::vec3(50, 50, 1));
 		crosshairShader->setMVP(&M[0][0], &V_flat[0][0], &P[0][0]);
 		glBindVertexArray(vao);
