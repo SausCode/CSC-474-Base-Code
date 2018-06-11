@@ -727,7 +727,7 @@ int readtobone(string s, bone **proot, all_animations *all_animations)
 	const char* lFilename = s.c_str();
 	FILE *checkfile=fopen(lFilename,"rb");
 	if (!checkfile) {
-		cout << endl << "file not found!" << endl;
+		cout << s << " : file not found!" << endl;
 		return 0;
 	}
 

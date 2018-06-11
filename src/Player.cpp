@@ -23,7 +23,7 @@ Player::Player(float xpos, float ypos) {
 void Player::loadAnimations(const std::string& animationDirectory) {
 	//Load player animations
 	//readtobone(animationDirectory + "/Walking with CannonChar00.fbx", &root, &all_animation);
-	readtobone(animationDirectory + "/Walk.fbx", &root, &all_animation);
+	readtobone(animationDirectory + "/walk.fbx", &root, &all_animation);
 	readtobone(animationDirectory + "/run.fbx", NULL, &all_animation);
 	root->set_animations(&all_animation, animmat, animmatsize);
 
