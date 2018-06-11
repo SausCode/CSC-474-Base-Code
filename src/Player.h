@@ -54,7 +54,7 @@ private:
 	const int JUMP_VEL = 10;
 	const int FRICTION = 0;
 	const int GRAVITY = 20;
-	float rotateY = -90.0;
+	float rotateY = 90.0;
 	const glm::vec3 scale = glm::vec3(100, 100, 50);
 
 	Hitbox hitbox;

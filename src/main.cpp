@@ -1,6 +1,7 @@
 // Core libraries
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 // Third party libraries
 #include <glm/glm.hpp>
@@ -124,6 +125,7 @@ public:
 		raindrop->init();
 
         fires.push_back(Fire(1000, windowManager->getHeight()/2.f));
+		fires.push_back(Fire(1500, windowManager->getHeight()/2.f));
 
         healthbar = new Healthbar(windowManager->getWidth() - 100);
 
@@ -246,7 +248,6 @@ public:
 
     void render() {
         // Clear framebuffer.
-        glClearColor(0.3f, 0.7f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Create the matrix stacks.
