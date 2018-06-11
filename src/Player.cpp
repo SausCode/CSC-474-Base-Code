@@ -22,11 +22,9 @@ Player::Player(float xpos, float ypos) {
     hitbox.right = shape->max_x * scale.x;
     hitbox.top = shape->max_y * scale.y;
     hitbox.bottom = shape->min_y * scale.y;
-
 }
 
 void Player::update(double frametime) {
-
 	if (reset) {
 		//Resets player back to start
 		pos.x = platforms[0].left;
@@ -84,8 +82,6 @@ void Player::update(double frametime) {
 		}
 	}
 
-
-
 	pos += vel;
 	
 	M = glm::translate(glm::mat4(1), glm::vec3(pos, -10.f));
@@ -123,7 +119,6 @@ bool Player::checkPlatformLeft() {
 				pos.x = platforms[i].right - hitbox.left + 0.1f; // Position of right platform wall MINUS hitbox left of MODEL
 				return true;
 			}
-
 		}
 	}
 
@@ -141,7 +136,6 @@ bool Player::checkPlatformRight() {
 				pos.x = platforms[i].left - hitbox.right - 0.1f; // Position of left platform wall MINUS hitbox right of MODEL
 				return true;
 			}
-
 		}
 	}
 

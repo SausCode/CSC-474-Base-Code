@@ -19,9 +19,10 @@
 #include "Player.h"
 #include "Water.h"
 #include "Fire.h"
+#include "Healthbar.h"
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
 
 using namespace std;
 using namespace glm;
@@ -43,7 +44,10 @@ public:
 
     std::vector<Platform> platforms;
 	std::vector<Water> waterDroplets;
-    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader, playerShader;
+    std::vector<Fire> fires;
+    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader, playerShader, healthbarShader;
+
+    Healthbar *healthbar;
     
     double gametime = 0;
     bool wireframeEnabled = false;
@@ -55,10 +59,6 @@ public:
 	GLuint vbo, vao;
 
 	GLuint waterTexture;
-
-    GLuint fireVAO, fireVBO;
-
-    Fire temp;
 
 	std::shared_ptr<Shape> sphere;
 
@@ -117,8 +117,6 @@ public:
     void initGeom(const std::string& resourceDirectory) {
 		//Create Platforms
         platforms.push_back(Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f));
-        platforms.push_back(Platform(windowManager->getWidth() / 2.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 4.f));
-		platforms.push_back(Platform(windowManager->getWidth() / 2.f + windowManager->getWidth() / 4.f, windowManager->getWidth(), 0, 3 * windowManager->getHeight() / 3.f));
  		
 		//Create Player
         player = new Player(100, windowManager->getHeight()/2.f + 200);
@@ -129,6 +127,10 @@ public:
 		sphere->loadMesh(resourceDirectory + "/raindrop.obj");
 		sphere->resize();
 		sphere->init();
+
+        fires.push_back(Fire(1000, windowManager->getHeight()/2.f));
+
+        healthbar = new Healthbar(windowManager->getWidth() - 100);
 
 		//Vertices for crosshair
 		GLfloat vertices_position[24] = {
@@ -175,15 +177,6 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
-
-		//GLuint Tex1Location = glGetUniformLocation(waterShader->getPID(), "tex");//tex, tex2... sampler in the fragment shader
-		//GLuint Tex2Location = glGetUniformLocation(waterShader->getPID(), "tex2");
-		glUseProgram(waterShader->getPID());
-		//glUniform1i(Tex1Location, 0);
-		//glUniform1i(Tex2Location, 1);
-
-        temp.init();
-        temp.init_texture(resourceDirectory);
     }
     
     void init(const std::string& resourceDirectory) {
@@ -213,6 +206,10 @@ public:
 		playerShader = std::make_shared<Program>();
 		playerShader->setShaderNames(resourceDirectory + "/player.vert", resourceDirectory + "/player.frag");
 		playerShader->init();
+
+        healthbarShader = std::make_shared<Program>();
+        healthbarShader->setShaderNames(resourceDirectory + "/healthbar.vert", resourceDirectory + "/healthbar.frag");
+        healthbarShader->init();
     }
     
     glm::mat4 getPerspectiveMatrix() {
@@ -233,7 +230,16 @@ public:
 			waterDroplets[i].update(frametime);
 		}
 
-        temp.update(frametime);
+        for (unsigned int i = 0; i < fires.size(); i++) {
+            fires[i].update(frametime, waterDroplets);
+            fires[i].checkPlayerDamage(player);
+            if (fires[i].size < 20.f) {
+                fires.erase(fires.begin() + i);
+                continue;
+            }
+        }
+
+        healthbar->update(player->health);
     }
 
     void render() {
@@ -251,9 +257,8 @@ public:
         /**************/
         /* DRAW SHAPE */
         /**************/
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        glDisable(GL_BLEND);
 
         phongShader->bind();
         phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
@@ -285,6 +290,25 @@ public:
 		}
 		waterShader->unbind();
 
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        fireShader->bind();
+        fireShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+
+        for (unsigned int i = 0; i < fires.size(); i++) {
+            fires[i].draw(fireShader);
+        }
+
+        fireShader->unbind();
+
+        healthbarShader->bind();
+        healthbarShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        healthbar->draw(healthbarShader);
+
+        healthbarShader->unbind();
+
 		crosshairShader->bind();
 		M = glm::translate(glm::mat4(1), glm::vec3(xPosMouse, yPosMouse, 99.f));
 		M = glm::scale(M, glm::vec3(50, 50, 1));
@@ -292,13 +316,6 @@ public:
 		glBindVertexArray(vao);
 		glDrawArrays(GL_TRIANGLES, 0, 12);
 		crosshairShader->unbind();
-
-
-        fireShader->bind();
-        fireShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-        temp.draw(fireShader);
-
-        fireShader->unbind();
     }
 };
 
@@ -333,6 +350,13 @@ int main(int argc, char **argv) {
         glfwSwapBuffers(windowManager->getHandle());
         // Poll for and process events.
         glfwPollEvents();
+
+        if (application->player->health <= 0) {
+            // You ded
+            std::cout << "You died! Try again" << std::endl;
+            windowManager->shutdown();
+            return 0;
+        }
     }
 
     // Quit program.

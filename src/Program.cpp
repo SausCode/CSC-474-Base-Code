@@ -57,6 +57,7 @@ bool Program::init() {
     // See whether link was successful
     CHECKED_GL_CALL(glGetProgramiv(pid, GL_LINK_STATUS, &linkSuccess));
     if (!linkSuccess) {
+        std::cout << "uh oh " << std::endl;
         if (isVerbose()) {
             GLSL::printProgramInfoLog(pid);
             std::cout << "Error linking shaders " << vShaderName << " and " << fShaderName;

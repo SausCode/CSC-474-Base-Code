@@ -3,6 +3,22 @@
 #include "Program.h"
 #include "glm/gtc/matrix_transform.hpp"
 
+Fire::Fire(float x, float y) {
+	pos.x = x;
+	pos.y = y;
+
+	to = glm::vec2(0.f, 0.f);
+	to2 = glm::vec2(0.f, 0.f);
+	
+	vel = glm::vec2(0.f, 0.f);
+
+	time = 0;
+	t = 0;
+
+	init();
+	init_texture();
+}
+
 void Fire::init() {
 	// Generate VAO
 	glGenVertexArrays(1, &vaoID);
@@ -35,20 +51,11 @@ void Fire::init() {
 
 	// Unbind VAO
 	glBindVertexArray(0);
-
-	to = glm::vec2(0.f, 0.f);
-	to2 = glm::vec2(0.f, 0.f);
-
-	pos = glm::vec2(200.f, 200.f);
-	vel = glm::vec2(0.f, 0.f);
-
-	time = 0;
-	t = 0;
 }
 
-void Fire::init_texture(std::string resourceDirectory) {
+void Fire::init_texture() {
 	int width, height, channels;
-	std::string str = resourceDirectory + "/fire.png";
+	std::string str = "../resources/fire.png";
 	unsigned char* data = stbi_load(str.c_str(), &width, &height, &channels, 4);
 
 	glGenTextures(1, &textureID);
@@ -62,7 +69,7 @@ void Fire::init_texture(std::string resourceDirectory) {
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void Fire::update(double frametime) {
+void Fire::update(double frametime, std::vector<Water> &waterDroplets) {
 	time += frametime;
 
 	if (time > 1.f/(float)framesPerSecond) {
@@ -90,8 +97,10 @@ void Fire::update(double frametime) {
 		t = (float)time / (float)framesPerSecond;
 	}
 
-	M = glm::translate(glm::mat4(1), glm::vec3(pos, -10.f));
-	M = glm::scale(M, scale);
+	checkWaterDropletsCollision(waterDroplets);
+
+	M = glm::translate(glm::mat4(1), glm::vec3(pos.x, pos.y + size, -10.f));
+	M = glm::scale(M, glm::vec3(size, size, 1));
 }
 
 void Fire::draw(const std::shared_ptr<Program> prog) const {
@@ -126,4 +135,34 @@ void Fire::draw(const std::shared_ptr<Program> prog) const {
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void Fire::checkWaterDropletsCollision(std::vector<Water> &waterDroplets) {
+	for (unsigned int i = 0; i < waterDroplets.size(); i++) {
+		Water temp = waterDroplets[i];
+
+		if (temp.pos.x > pos.x - size && temp.pos.x < pos.x + size) {
+			// Water droplet is within horizontal coordinates of fire
+			if (temp.pos.y < pos.y + size && temp.pos.y > pos.y - size) {
+				// Water droplet is within vertical coordinates of (lower half of) fire
+				waterDroplets.erase(waterDroplets.begin() + i);
+
+				size -= 1;
+				continue;
+			}
+		}
+	}
+}
+
+void Fire::checkPlayerDamage(Player* player) {
+	Player::Hitbox hitbox = player->getHitbox();
+
+	if (hitbox.left < pos.x + size && hitbox.right > pos.x - size) {
+		// Player is within horizontal coordinates of fire
+		if (hitbox.bottom < pos.y && hitbox.top > pos.y - size) {
+			// Player is within bottom half of fire
+
+			player->health -= 0.1f;
+		}
+	}
 }

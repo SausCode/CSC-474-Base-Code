@@ -9,11 +9,12 @@
 #include <glm/glm.hpp>
 
 class Player {
+public:
 	struct Hitbox {
 		float left, right, bottom, top;
 	};
 
-public:
+
 	Player(float xpos, float ypos);
 
 	void draw(const std::shared_ptr<Program> prog, bool use_extern_texures);
@@ -33,6 +34,8 @@ public:
 
 	std::vector<Platform> platforms;
 
+	float health = 100.f;
+
 private:
 	std::shared_ptr<Shape> shape;
 
@@ -43,7 +46,7 @@ private:
 	const int WALK_VEL = 8;
 	const int JUMP_VEL = 10;
 	const int FRICTION = 45;
-	const int GRAVITY = 10;
+	const int GRAVITY = 20;
 	float rotateY = 90.0;
 	const glm::vec3 scale = glm::vec3(100, 100, 50);
 

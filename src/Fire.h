@@ -9,15 +9,24 @@
 #include "GLSL.h"
 #include "glm/glm.hpp"
 
+#include "Water.h"
+#include "Player.h"
+
 class Program;
 
 class Fire {
 
 public:
+    Fire(float x, float y);
+
     void init();
-    void init_texture(std::string resourceDirectroy);
-    void update(double frametime);
+    void init_texture();
+    void update(double frametime, std::vector<Water> &waterDroplets);
+    void checkWaterDropletsCollision(std::vector<Water> &waterDroplets);
+    void checkPlayerDamage(Player* player);
     void draw(const std::shared_ptr<Program> prog) const;
+
+    float size = 100;
 
 private:
     unsigned int textureID = 0;
@@ -48,7 +57,7 @@ private:
 
     glm::mat4 M;
 
-    const int framesPerSecond = 30;
+    int framesPerSecond = 30;
 
     glm::vec2 to, to2;
 
@@ -57,7 +66,7 @@ private:
 
     glm::vec2 pos, vel;
 
-    const glm::vec3 scale = glm::vec3(100, 100, 1);
+
 };
 
 #endif
