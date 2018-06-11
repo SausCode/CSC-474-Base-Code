@@ -14,7 +14,7 @@ public:
 
 	void update(double frametime);
 
-	void draw(const std::shared_ptr<Program> prog, bool use_extern_texures, GLuint texture) const;
+	void draw(const std::shared_ptr<Program> prog, bool use_extern_texures) const;
 
 	glm::vec3 currentPos, endingPos;
 
