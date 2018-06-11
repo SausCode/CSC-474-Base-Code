@@ -10,13 +10,11 @@
 
 class Water {
 public:
-	Water(glm::vec3 _currentPos, glm::vec3 _endingPos, float _xSpeed, std::shared_ptr<Shape> _shaped);
+	Water(glm::vec2 playerPos, glm::vec2 mousePos, std::shared_ptr<Shape> &_shape);
 
 	void update(double frametime);
 
-	void draw(const std::shared_ptr<Program> prog, bool use_extern_texures) const;
-
-	glm::vec3 currentPos, endingPos;
+	void draw(const std::shared_ptr<Program> prog) const;
 
 	glm::vec2 pos, vel;
 
@@ -24,10 +22,16 @@ private:
 	std::shared_ptr<Shape> shape;
 
 	glm::mat4 M;
-	
-	glm::vec3 scale = glm::vec3(20, 20, 50);
 
-	int GRAVITY = 1;
+	int velocity_scalar = 20;
+	
+	glm::vec3 scale = glm::vec3(20, 20, 1);
+
+	float GRAVITY = 35;
+
+	float angle;
+
+	float color;
 };
 
 #endif

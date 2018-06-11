@@ -50,6 +50,7 @@ public:
     Healthbar *healthbar;
     
     double gametime = 0;
+    double time_since_waterdrop = 0;
     bool wireframeEnabled = false;
     bool mousePressed = false;
     bool mouseCaptured = false;
@@ -60,7 +61,7 @@ public:
 
 	GLuint waterTexture;
 
-	std::shared_ptr<Shape> sphere;
+	std::shared_ptr<Shape> raindrop;
 
     Application() {
         camera = new Camera();
@@ -88,14 +89,10 @@ public:
 
     void mouseCallback(GLFWwindow *window, int button, int action, int mods) {
         mousePressed = (action != GLFW_RELEASE);
-        if (action == GLFW_PRESS) {
-			addWaterDrops();
-			resetMouseMoveInitialValues(window);
-        }
     }
 
 	void addWaterDrops() {
-		waterDroplets.push_back(Water(vec3(player->pos.x, player->pos.y+50, -5), vec3(xPosMouse, yPosMouse, -5), 50, sphere));
+		waterDroplets.push_back(Water(player->pos, vec2(xPosMouse, yPosMouse), raindrop));
 	}
     
     void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
@@ -122,11 +119,11 @@ public:
         player = new Player(100, windowManager->getHeight()/2.f + 200);
 		player->platforms = platforms;
 
-		//Load Sphere
-		sphere = std::make_shared<Shape>();
-		sphere->loadMesh(resourceDirectory + "/raindrop.obj");
-		sphere->resize();
-		sphere->init();
+		//Load Raindrop
+		raindrop = std::make_shared<Shape>();
+		raindrop->loadMesh(resourceDirectory + "/raindrop.obj");
+		raindrop->resize();
+		raindrop->init();
 
         fires.push_back(Fire(1000, windowManager->getHeight()/2.f));
 
@@ -221,10 +218,18 @@ public:
     void update() {
         double frametime = get_last_elapsed_time();
         gametime += frametime;
+        time_since_waterdrop += frametime;
 
         camera->update();
 
         player->update(frametime);
+
+        if (mousePressed) {
+            if (time_since_waterdrop > (1.f / 20.f)) {
+                addWaterDrops();
+                time_since_waterdrop -= (1.f / 20.f);
+            }
+        }
 
 		for (unsigned int i = 0; i < waterDroplets.size(); i++) {
 			waterDroplets[i].update(frametime);
@@ -286,7 +291,7 @@ public:
 				waterDroplets.erase(waterDroplets.begin() + i);
 				continue;
 			}
-			waterDroplets[i].draw(waterShader, false);
+			waterDroplets[i].draw(waterShader);
 		}
 		waterShader->unbind();
 

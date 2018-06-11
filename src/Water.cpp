@@ -1,40 +1,47 @@
 #include "Water.h"
 #include "Program.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <tgmath.h>
 
-Water::Water(glm::vec3 _currentPos, glm::vec3 _endingPos, float _xSpeed, std::shared_ptr<Shape> _shape) {
-
-	currentPos = _currentPos;
-	endingPos = _endingPos;
+Water::Water(glm::vec2 playerPos, glm::vec2 mousePos, std::shared_ptr<Shape> &_shape) {
+	pos = playerPos;
+	pos.y += 50;
 
 	shape = _shape;
 
-	pos.x = currentPos.x;
-	pos.y = currentPos.y;
+	vel = glm::normalize(mousePos - playerPos);
 
-	vel.x = _xSpeed;
+	angle = (3.1415f / 2.f) + -(atan2(0, 1) - atan2(vel.y, vel.x));
 
-	M = glm::translate(glm::mat4(1.f), endingPos);
-	M = glm::scale(M, glm::vec3(10,10,5));
+	float rand_x = ((rand() / (float)RAND_MAX) / 5.f) + 0.8f;
+	float rand_y = ((rand() / (float)RAND_MAX) / 5.f) + 0.8f;
+
+	vel.x *= (velocity_scalar * rand_x);
+	vel.y *= (velocity_scalar * rand_y);
+
+	color = (rand() / (float)RAND_MAX);
 }
 
 void Water::update(double frametime) {
+	glm::vec2 oldvel = vel;
 
-	vel.y -= GRAVITY;
-
+	vel.y -= (GRAVITY * frametime);
 	pos += vel;
+
+	angle += -(atan2(oldvel.y, oldvel.x) - atan2(vel.y, vel.x));
 
 	M = glm::translate(glm::mat4(1), glm::vec3(pos, -10.f));
 
-	M = glm::rotate(M, glm::radians(90.f), glm::vec3(0, 0, 1));
+	M = glm::rotate(M, angle, glm::vec3(0, 0, 1));
 
 	M = glm::scale(M, scale);
-
 }
 
-void Water::draw(const std::shared_ptr<Program> prog, bool use_extern_texures) const {
-	
+void Water::draw(const std::shared_ptr<Program> prog) const {
 	prog->setMatrix("M", &M[0][0]);
+	prog->setFloat("c", color);
 
-	shape->draw(prog, use_extern_texures);
+	shape->draw(prog, false);
 }
