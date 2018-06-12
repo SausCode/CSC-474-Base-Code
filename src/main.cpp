@@ -24,6 +24,8 @@
 #include "Waterbar.h"
 #include "Background.h"
 #include "Hydrant.h"
+#include "Archer.h"
+#include "Arrow.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
@@ -50,6 +52,8 @@ public:
 	std::vector<Water> waterDroplets;
     std::vector<Fire> fires;
     std::vector<Hydrant> hydrants;
+    std::vector<Archer> archers;
+    std::vector<Arrow> arrows;
     std::shared_ptr<Program> crosshairShader, waterShader, fireShader, playerShader, healthbarShader, imageShader;
 
     Healthbar *healthbar;
@@ -127,6 +131,8 @@ public:
         platforms.push_back(Platform(2 * windowManager->getWidth(), 2 * windowManager->getWidth() + 400, 0, 0.5f * windowManager->getHeight()));
         platforms.push_back(Platform(2 * windowManager->getWidth(), 3 * windowManager->getWidth(), 0.75f * windowManager->getHeight(), 1.25f * windowManager->getHeight()));
  		platforms.push_back(Platform(3 * windowManager->getWidth() - 400, 3 * windowManager->getWidth(), 0, 0.5f * windowManager->getHeight()));
+        platforms.push_back(Platform(4 * windowManager->getWidth() - 400, 4 * windowManager->getWidth(), 0, 0.75f * windowManager->getHeight()));
+        platforms.push_back(Platform(3 * windowManager->getWidth(), 4 * windowManager->getWidth(), -0.25f * windowManager->getHeight(), 0.25f * windowManager->getHeight()));
 
 		//Create Player
         player = new Player(100, windowManager->getHeight()/2.f + 200);
@@ -158,6 +164,9 @@ public:
 
         hydrants.push_back(Hydrant(glm::vec2(300, windowManager->getHeight()/2.f + 50)));
         hydrants.push_back(Hydrant(glm::vec2(windowManager->getWidth() + 1700, (0.25f) * windowManager->getHeight() + 50)));
+        hydrants.push_back(Hydrant(glm::vec2(3 * windowManager->getWidth() + 200, (0.25f) * windowManager->getHeight() + 50)));
+
+        archers.push_back(Archer(glm::vec2(4 * windowManager->getWidth() - 200, 0.75f * windowManager->getHeight() + 40)));
 
         healthbar = new Healthbar(windowManager->getWidth() - 100);
 
@@ -285,6 +294,45 @@ public:
             hydrants[i].update(player);
         }
 
+        for (unsigned int i = 0; i < archers.size(); i++) {
+            archers[i].update(frametime);
+            if (archers[i].shouldRemove) {
+                archers.erase(archers.begin() + i);
+                continue;
+            }
+            archers[i].checkWaterDropletsCollision(waterDroplets);
+            if (archers[i].time_since_last_arrow > 2.f && abs(archers[i].pos.x - player->pos.x) < 2000) {
+                arrows.push_back(Arrow(archers[i].pos, platforms));
+                archers[i].time_since_last_arrow = 0;
+            }
+        }
+
+        for (unsigned int i = 0; i < arrows.size(); i++) {
+            arrows[i].update(frametime);
+            if (arrows[i].shouldRemove) {
+                Fire temp = Fire(arrows[i].pos.x, 0.25 * windowManager->getHeight());
+                Fire::Hitbox temp_hitbox = temp.getHitbox();
+                bool add = true;
+                for (unsigned int j = 0; j < fires.size(); j++) {
+                    Fire::Hitbox other_hitbox = fires[j].getHitbox();
+
+                    if (temp_hitbox.left < other_hitbox.right && temp_hitbox.right > other_hitbox.left) {
+                        // Horizontally overlapping
+                        if (temp_hitbox.bottom < other_hitbox.top && temp_hitbox.top > other_hitbox.bottom) {
+                            // Don't add it
+                            add = false;
+                        }
+                    }
+                }
+                if (add) {
+                    fires.push_back(temp);
+                }
+
+                arrows.erase(arrows.begin() + i);
+                continue;
+            }
+        }
+
 		player->updatePlayerAnimation(frametime);
         healthbar->update(player->health);
         waterbar->update(player->water);
@@ -347,6 +395,14 @@ public:
         imageShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
         for (unsigned int i = 0; i < hydrants.size(); i++) {
             hydrants[i].draw(imageShader);
+        }
+        imageShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        for (unsigned int i = 0; i < archers.size(); i++) {
+            archers[i].draw(imageShader);
+        }
+        imageShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        for (unsigned int i = 0; i < arrows.size(); i++) {
+            arrows[i].draw(imageShader);
         }
         imageShader->unbind();
 

@@ -17,6 +17,10 @@ class Program;
 class Fire {
 
 public:
+    struct Hitbox {
+        float left, right, top, bottom;
+    };
+
     Fire(float x, float y);
     Fire(float x, float y, bool upsideDown);
 
@@ -26,6 +30,8 @@ public:
     void checkWaterDropletsCollision(std::vector<Water> &waterDroplets);
     void checkPlayerDamage(Player* player);
     void draw(const std::shared_ptr<Program> prog) const;
+
+    Hitbox getHitbox();
 
     bool upsideDown;
 
@@ -68,6 +74,8 @@ private:
     float t;
 
     glm::vec2 pos, vel;
+
+    Hitbox hitbox;
 };
 
 #endif

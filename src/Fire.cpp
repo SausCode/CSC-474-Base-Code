@@ -2,6 +2,7 @@
 #include "stb_image.h"
 #include "Program.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include <iostream>
 
 Fire::Fire(float x, float y) {
 	pos.x = x;
@@ -16,6 +17,11 @@ Fire::Fire(float x, float y) {
 	t = 0;
 
 	upsideDown = false;
+
+	hitbox.left = -size;
+	hitbox.right = size;
+	hitbox.top = 2 * size;
+	hitbox.bottom = 0;
 
 	init();
 	init_texture();
@@ -128,6 +134,17 @@ void Fire::update(double frametime, std::vector<Water> &waterDroplets) {
 	}
 }
 
+Fire::Hitbox Fire::getHitbox() {
+	Fire::Hitbox hit;
+
+	hit.left = pos.x + hitbox.left;
+	hit.right = pos.x + hitbox.right;
+	hit.bottom = pos.y + hitbox.bottom;
+	hit.top = pos.y + hitbox.top;
+
+	return hit;
+}
+
 void Fire::draw(const std::shared_ptr<Program> prog) const {
 	prog->setMatrix("M", &M[0][0]);
 
@@ -184,7 +201,8 @@ void Fire::checkPlayerDamage(Player* player) {
 
 	if (hitbox.left < pos.x + size && hitbox.right > pos.x - size) {
 		// Player is within horizontal coordinates of fire
-		if (!upsideDown && hitbox.bottom < pos.y && hitbox.top > pos.y - size) {
+
+		if (!upsideDown && hitbox.bottom < pos.y + size && hitbox.top > pos.y - size) {
 			// Player is within bottom half of fire
 
 			player->health -= 0.01f * size;
