@@ -123,7 +123,11 @@ public:
     void initGeom(const std::string& resourceDirectory) {
 		//Create Platforms
         platforms.push_back(Platform(0, windowManager->getWidth(), 0, windowManager->getHeight()/2.f));
- 		
+        platforms.push_back(Platform(windowManager->getWidth(), windowManager->getWidth() * 2, (-0.25f) * windowManager->getHeight(), 0.25f * windowManager->getHeight()));
+        platforms.push_back(Platform(2 * windowManager->getWidth(), 2 * windowManager->getWidth() + 400, 0, 0.5f * windowManager->getHeight()));
+        platforms.push_back(Platform(2 * windowManager->getWidth(), 3 * windowManager->getWidth(), 0.75f * windowManager->getHeight(), 1.25f * windowManager->getHeight()));
+ 		platforms.push_back(Platform(3 * windowManager->getWidth() - 400, 3 * windowManager->getWidth(), 0, 0.5f * windowManager->getHeight()));
+
 		//Create Player
         player = new Player(100, windowManager->getHeight()/2.f + 200);
 		player->platforms = platforms;
@@ -138,7 +142,22 @@ public:
         fires.push_back(Fire(1000, windowManager->getHeight()/2.f));
 		fires.push_back(Fire(1500, windowManager->getHeight()/2.f));
 
-        hydrants.push_back(Hydrant(glm::vec2(windowManager->getWidth()/2.f, windowManager->getHeight()/2.f + 50)));
+        fires.push_back(Fire(windowManager->getWidth() + 100, (0.25f) * windowManager->getHeight()));
+        fires.push_back(Fire(windowManager->getWidth() + 300, (0.25f) * windowManager->getHeight()));
+        fires.push_back(Fire(windowManager->getWidth() + 500, (0.25f) * windowManager->getHeight()));
+        fires.push_back(Fire(windowManager->getWidth() + 700, (0.25f) * windowManager->getHeight()));
+        fires.push_back(Fire(windowManager->getWidth() + 900, (0.25f) * windowManager->getHeight()));
+        fires.push_back(Fire(windowManager->getWidth() + 1100, (0.25f) * windowManager->getHeight()));
+        fires.push_back(Fire(windowManager->getWidth() + 1300, (0.25f) * windowManager->getHeight()));
+        fires.push_back(Fire(windowManager->getWidth() + 1500, (0.25f) * windowManager->getHeight()));
+
+        fires.push_back(Fire(2 * windowManager->getWidth() + 600, (0.75) * windowManager->getHeight(), true));
+        fires.push_back(Fire(2 * windowManager->getWidth() + 800, (0.75) * windowManager->getHeight(), true));
+        fires.push_back(Fire(2 * windowManager->getWidth() + 1000, (0.75) * windowManager->getHeight(), true));
+        fires.push_back(Fire(2 * windowManager->getWidth() + 1200, (0.75) * windowManager->getHeight(), true));
+
+        hydrants.push_back(Hydrant(glm::vec2(300, windowManager->getHeight()/2.f + 50)));
+        hydrants.push_back(Hydrant(glm::vec2(windowManager->getWidth() + 1700, (0.25f) * windowManager->getHeight() + 50)));
 
         healthbar = new Healthbar(windowManager->getWidth() - 100);
 
@@ -234,9 +253,9 @@ public:
             if (time_since_waterdrop > (1.f / 40.f)) {
                 addWaterDrops();
                 time_since_waterdrop = 0;
-                player->water -= 0.2f;
+                player->water -= 0.3f;
                 if (jetPack) {
-                    player->water -= 0.2f;
+                    player->water -= 0.3f;
                 }
             }
 

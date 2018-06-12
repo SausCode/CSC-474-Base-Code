@@ -15,6 +15,26 @@ Fire::Fire(float x, float y) {
 	time = 0;
 	t = 0;
 
+	upsideDown = false;
+
+	init();
+	init_texture();
+}
+
+Fire::Fire(float x, float y, bool _upsideDown) {
+	pos.x = x;
+	pos.y = y;
+
+	to = glm::vec2(0.f, 0.f);
+	to2 = glm::vec2(0.f, 0.f);
+	
+	vel = glm::vec2(0.f, 0.f);
+
+	time = 0;
+	t = 0;
+
+	upsideDown = _upsideDown;
+
 	init();
 	init_texture();
 }
@@ -59,8 +79,8 @@ void Fire::init_texture() {
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
@@ -95,8 +115,17 @@ void Fire::update(double frametime, std::vector<Water> &waterDroplets) {
 
 	checkWaterDropletsCollision(waterDroplets);
 
-	M = glm::translate(glm::mat4(1), glm::vec3(pos.x, pos.y + size, -10.f));
+	if (upsideDown) {
+		M = glm::translate(glm::mat4(1), glm::vec3(pos.x, pos.y - size, -10.f));
+	}
+	else {
+		M = glm::translate(glm::mat4(1), glm::vec3(pos.x, pos.y + size, -10.f));
+	}
 	M = glm::scale(M, glm::vec3(size, size, 1));
+
+	if (upsideDown) {
+		M = glm::rotate(M, glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f));
+	}
 }
 
 void Fire::draw(const std::shared_ptr<Program> prog) const {
@@ -155,10 +184,15 @@ void Fire::checkPlayerDamage(Player* player) {
 
 	if (hitbox.left < pos.x + size && hitbox.right > pos.x - size) {
 		// Player is within horizontal coordinates of fire
-		if (hitbox.bottom < pos.y && hitbox.top > pos.y - size) {
+		if (!upsideDown && hitbox.bottom < pos.y && hitbox.top > pos.y - size) {
 			// Player is within bottom half of fire
 
-			player->health -= 0.1f;
+			player->health -= 0.01f * size;
+		}
+		else if (upsideDown && hitbox.bottom < pos.y + size && hitbox.top > pos.y) {
+			// Player is within top half of fire
+
+			player->health -= 0.01f * size;
 		}
 	}
 }

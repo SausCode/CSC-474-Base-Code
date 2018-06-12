@@ -185,6 +185,9 @@ void Player::update(double frametime) {
 	}
 
 	pos += vel;
+	if (pos.x <= 1.f) {
+		pos.x = 1.f;
+	}
 	
 	M = glm::translate(glm::mat4(1), glm::vec3(pos, -20.f));
 
@@ -238,7 +241,7 @@ bool Player::checkPlatformLeft() {
 	Hitbox hit = getHitbox();
 
 	for (unsigned int i = 0; i < platforms.size(); i++) {
-		if (hit.top > (platforms[i].bottom + 0.1f) && hit.bottom < (platforms[i].top - 0.1f)) {
+		if (hit.top > (platforms[i].bottom + 1.f) && hit.bottom < (platforms[i].top - 1.f)) {
 			// Player is within top / bottom of platform
 			if (hit.right > platforms[i].right && hit.left < platforms[i].right) {
 				// Player is colliding with platform!
@@ -255,7 +258,7 @@ bool Player::checkPlatformRight() {
 	Hitbox hit = getHitbox();
 
 	for (unsigned int i = 0; i < platforms.size(); i++) {
-		if (hit.top > (platforms[i].bottom + 0.1f) && hit.bottom < (platforms[i].top - 0.1f)) {
+		if (hit.top > (platforms[i].bottom + 1.f) && hit.bottom < (platforms[i].top - 1.f)) {
 			// Player is within top / bottom of platform
 			if (hit.left < platforms[i].left && hit.right > platforms[i].left) {
 				// Player is colliding with platform!
@@ -272,10 +275,9 @@ bool Player::checkPlatformUp() {
 	Hitbox hit = getHitbox();
 
 	for (unsigned int i = 0; i < platforms.size(); i++) {
-		if (hit.left < (platforms[i].right - 0.1f) && hit.right > (platforms[i].left + 0.1f)) {
+		if (hit.left < (platforms[i].right - 1.f) && hit.right > (platforms[i].left + 1.f)) {
 			// Player is within left / right of platform
 			if (hit.bottom < platforms[i].bottom && hit.top > platforms[i].bottom) {
-				std::cout << hit.top << "      " << platforms[i].bottom << std::endl;
 				// Player is colliding with platform!
 				pos.y = platforms[i].bottom - hitbox.top - 0.1f; // Position of bottom platform wall MINUS hitbox top of MODEL
 				return true;
@@ -290,7 +292,7 @@ bool Player::checkPlatformDown() {
 	Hitbox hit = getHitbox();
 
 	for (unsigned int i = 0; i < platforms.size(); i++) {
-		if (hit.left < (platforms[i].right - 0.1f) && hit.right > (platforms[i].left + 0.1f)) {
+		if (hit.left < (platforms[i].right - 1.f) && hit.right > (platforms[i].left + 1.f)) {
 			// Player is within left / right of platform
 			if (hit.top > platforms[i].top && hit.bottom < platforms[i].top) {
 				// Player is colliding with platform!

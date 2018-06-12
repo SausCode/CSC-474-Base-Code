@@ -18,6 +18,7 @@ class Fire {
 
 public:
     Fire(float x, float y);
+    Fire(float x, float y, bool upsideDown);
 
     void init();
     void init_texture();
@@ -25,6 +26,8 @@ public:
     void checkWaterDropletsCollision(std::vector<Water> &waterDroplets);
     void checkPlayerDamage(Player* player);
     void draw(const std::shared_ptr<Program> prog) const;
+
+    bool upsideDown;
 
     float size = 100;
 

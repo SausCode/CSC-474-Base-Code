@@ -18,6 +18,10 @@ void Camera::update(glm::vec2 playerPos, glm::vec2 playerVel, int screenWidth) {
     else if (playerPos.x + pos.x < 0.3f * screenWidth && playerVel.x < 0.f) {
         pos.x -= playerVel.x;
     }
+
+    if (pos.x >= 0.f) {
+        pos.x = 0.f;
+    }
 }
 
 glm::mat4 Camera::getViewMatrix() {

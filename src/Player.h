@@ -15,7 +15,6 @@ public:
 		float left, right, bottom, top;
 	};
 
-
 	Player(float xpos, float ypos);
 
 	void draw(const std::shared_ptr<Program> prog, bool use_extern_texures);

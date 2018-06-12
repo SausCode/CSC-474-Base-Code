@@ -164,7 +164,6 @@ bool Water::checkPlatformUp() {
 		if (hit.left < (platforms[i].right - 0.1f) && hit.right > (platforms[i].left + 0.1f)) {
 			// Player is within left / right of platform
 			if (hit.bottom < platforms[i].bottom && hit.top > platforms[i].bottom) {
-				std::cout << hit.top << "      " << platforms[i].bottom << std::endl;
 				// Player is colliding with platform!
 				pos.y = platforms[i].bottom - hitbox.top - 0.1f; // Position of bottom platform wall MINUS hitbox top of MODEL
 				return true;
