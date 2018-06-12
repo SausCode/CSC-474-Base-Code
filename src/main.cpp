@@ -23,6 +23,7 @@
 #include "Healthbar.h"
 #include "Waterbar.h"
 #include "Background.h"
+#include "Hydrant.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
@@ -48,7 +49,8 @@ public:
     std::vector<Platform> platforms;
 	std::vector<Water> waterDroplets;
     std::vector<Fire> fires;
-    std::shared_ptr<Program> platformShader, crosshairShader, waterShader, fireShader, playerShader, healthbarShader, backgroundShader;
+    std::vector<Hydrant> hydrants;
+    std::shared_ptr<Program> crosshairShader, waterShader, fireShader, playerShader, healthbarShader, imageShader;
 
     Healthbar *healthbar;
     Waterbar *waterbar;
@@ -136,6 +138,8 @@ public:
         fires.push_back(Fire(1000, windowManager->getHeight()/2.f));
 		fires.push_back(Fire(1500, windowManager->getHeight()/2.f));
 
+        hydrants.push_back(Hydrant(glm::vec2(windowManager->getWidth()/2.f, windowManager->getHeight()/2.f + 50)));
+
         healthbar = new Healthbar(windowManager->getWidth() - 100);
 
         waterbar = new Waterbar(windowManager->getWidth() - 100);
@@ -179,9 +183,9 @@ public:
         glEnable(GL_DEPTH_TEST);
         
         // Initialize the GLSL programs
-        platformShader = std::make_shared<Program>();
-        platformShader->setShaderNames(resourceDirectory + "/platform.vert", resourceDirectory + "/platform.frag");
-        platformShader->init();
+        imageShader = std::make_shared<Program>();
+        imageShader->setShaderNames(resourceDirectory + "/image.vert", resourceDirectory + "/image.frag");
+        imageShader->init();
 
 		crosshairShader = std::make_shared<Program>();
 		crosshairShader->setShaderNames(resourceDirectory + "/crosshair.vert", resourceDirectory + "/crosshair.frag");
@@ -204,10 +208,6 @@ public:
         healthbarShader = std::make_shared<Program>();
         healthbarShader->setShaderNames(resourceDirectory + "/healthbar.vert", resourceDirectory + "/healthbar.frag");
         healthbarShader->init();
-
-        backgroundShader = std::make_shared<Program>();
-        backgroundShader->setShaderNames(resourceDirectory + "/background.vert", resourceDirectory + "/background.frag");
-        backgroundShader->init();
     }   
     
     glm::mat4 getPerspectiveMatrix() {
@@ -261,6 +261,11 @@ public:
                 continue;
             }
         }
+
+        for (unsigned int i = 0; i < hydrants.size(); i++) {
+            hydrants[i].update(player);
+        }
+
 		player->updatePlayerAnimation(frametime);
         healthbar->update(player->health);
         waterbar->update(player->water);
@@ -292,14 +297,15 @@ public:
         
         glDisable(GL_BLEND);
 
-        platformShader->bind();
-        platformShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        imageShader->bind();
+        imageShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 
         // Draw platforms
         for (unsigned int i = 0; i < platforms.size(); i++) {
-            platforms[i].draw(platformShader);
+            platforms[i].draw(imageShader);
         }
-		platformShader->unbind();
+        background->draw(imageShader);
+		imageShader->unbind();
 
 		waterShader->bind();
 		waterShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
@@ -318,11 +324,12 @@ public:
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        backgroundShader->bind();
-        backgroundShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-        background->draw(backgroundShader);
-
-        backgroundShader->unbind();
+        imageShader->bind();
+        imageShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        for (unsigned int i = 0; i < hydrants.size(); i++) {
+            hydrants[i].draw(imageShader);
+        }
+        imageShader->unbind();
 
         fireShader->bind();
         fireShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
