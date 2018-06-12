@@ -39,6 +39,8 @@ public:
 
 	bool left = false, right = false, jump = false, reset = false;
 
+	bool justJumped = false;
+
 	std::vector<Platform> platforms;
 
 	float health = 100.f;
@@ -63,8 +65,9 @@ private:
 	const float MAX_Y_VEL = 8.f;
 
 	const int WATER_SCALAR = 35;
+
+	float rotateY = 90.0;
 	
-	float rotateY = -90.0;
 	const glm::vec3 scale = glm::vec3(100, 100, 50);
 
 	Hitbox hitbox;
