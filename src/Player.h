@@ -54,7 +54,7 @@ private:
 
 	bool isJumping = false;
 
-	float speedEpsilon = .1;
+	float speedEpsilon = .001;
 
 	const int WALK_VEL = 8;
 	const int JUMP_VEL = 10;
@@ -75,6 +75,7 @@ private:
 	unsigned int playerVAO = 0;
 	unsigned int playerVBO = 0;
 	unsigned int imat_VBO = 0;
+
 
 	bone *root = NULL;
 	int size_stick = 0;

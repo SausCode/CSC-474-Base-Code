@@ -1,6 +1,8 @@
 #include "Waterbar.h"
 #include "Program.h"
 
+#include <algorithm>
+
 Waterbar::Waterbar(float _width) {
 	width = _width;
 

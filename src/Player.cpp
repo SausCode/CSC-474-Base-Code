@@ -29,8 +29,6 @@ void Player::loadAnimations(const std::string& animationDirectory) {
 
 	root->set_animations(&all_animation, animmat, animmatsize);
 
-	cout << "All animations size: " << all_animation.animations.size() << std::endl;
-
 	//generate the VAO
 	glGenVertexArrays(1, &playerVAO);
 	glBindVertexArray(playerVAO);
@@ -83,7 +81,7 @@ void Player::updatePlayerAnimation(double frametime) {
 	//animation frame system
 	int anim_step_width_ms = (root->getDuration(next_animation) / root->getKeyFrameCount(next_animation))/10;
 	static int frame = 0;
-
+/*
 	if (isJumping) {
 		int current_animation = 1;
 		int next_animation = 1;
@@ -92,9 +90,9 @@ void Player::updatePlayerAnimation(double frametime) {
 	else {
 		int current_animation = 0;
 		int next_animation = 0;
-	}
+	}*/
 
-	if (vel.x == 0) {
+	if (vel.x < speedEpsilon && vel.x > -speedEpsilon) {
 		/*frame = 0;*/
 	}
 	else {
