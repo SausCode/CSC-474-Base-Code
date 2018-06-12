@@ -20,6 +20,7 @@
 #include "Water.h"
 #include "Fire.h"
 #include "Healthbar.h"
+#include "Waterbar.h"
 #include "Background.h"
 
 #define WINDOW_WIDTH 1920
@@ -46,9 +47,10 @@ public:
     std::vector<Platform> platforms;
 	std::vector<Water> waterDroplets;
     std::vector<Fire> fires;
-    std::shared_ptr<Program> phongShader, crosshairShader, waterShader, fireShader, playerShader, healthbarShader, backgroundShader;
+    std::shared_ptr<Program> platformShader, crosshairShader, waterShader, fireShader, playerShader, healthbarShader, backgroundShader;
 
     Healthbar *healthbar;
+    Waterbar *waterbar;
 
     Background *background;
     
@@ -57,6 +59,8 @@ public:
     bool wireframeEnabled = false;
     bool mousePressed = false;
     bool mouseCaptured = false;
+
+    bool jetPack = false;
 
 	double xPosMouse, yPosMouse = 0.0;
     double raw_xPosMouse, raw_yPosMouse = 0.0;
@@ -85,7 +89,12 @@ public:
         if (key == GLFW_KEY_W && action == GLFW_PRESS) {player->jump = true;}
         if (key == GLFW_KEY_W && action == GLFW_RELEASE) {player->jump = false;}
 
-		if (key == GLFW_KEY_R && action == GLFW_PRESS) { player->reset = true; }
+        if (key == GLFW_KEY_G && action == GLFW_PRESS) {jetPack = !jetPack;}
+
+		if (key == GLFW_KEY_R && action == GLFW_PRESS) { 
+            player->reset = true;
+            camera->pos = glm::vec2(0.f);
+        }
 		if (key == GLFW_KEY_R && action == GLFW_RELEASE) { player->reset = false; }
 
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) { addWaterDrops(); }
@@ -127,6 +136,8 @@ public:
 
         healthbar = new Healthbar(windowManager->getWidth() - 100);
 
+        waterbar = new Waterbar(windowManager->getWidth() - 100);
+
         background = new Background(windowManager->getWidth(), windowManager->getHeight());
 
 		//Vertices for crosshair
@@ -166,9 +177,9 @@ public:
         glEnable(GL_DEPTH_TEST);
         
         // Initialize the GLSL programs
-        phongShader = std::make_shared<Program>();
-        phongShader->setShaderNames(resourceDirectory + "/phong.vert", resourceDirectory + "/phong.frag");
-        phongShader->init();
+        platformShader = std::make_shared<Program>();
+        platformShader->setShaderNames(resourceDirectory + "/platform.vert", resourceDirectory + "/platform.frag");
+        platformShader->init();
 
 		crosshairShader = std::make_shared<Program>();
 		crosshairShader->setShaderNames(resourceDirectory + "/crosshair.vert", resourceDirectory + "/crosshair.frag");
@@ -217,10 +228,18 @@ public:
 
         player->update(frametime);
 
-        if (mousePressed) {
-            if (time_since_waterdrop > (1.f / 20.f)) {
+        if (mousePressed && player->water > 0.f) {
+            if (time_since_waterdrop > (1.f / 40.f)) {
                 addWaterDrops();
-                time_since_waterdrop -= (1.f / 20.f);
+                time_since_waterdrop = 0;
+                player->water -= 0.2f;
+                if (jetPack) {
+                    player->water -= 0.2f;
+                }
+            }
+
+            if (jetPack) {
+                player->addWaterVelocity(xPosMouse, yPosMouse, frametime);
             }
         }
 
@@ -242,6 +261,7 @@ public:
         }
 		player->updatePlayerAnimation(frametime);
         healthbar->update(player->health);
+        waterbar->update(player->water);
     }
 
     void render() {
@@ -258,6 +278,7 @@ public:
         M = glm::mat4(1);
 
 		//Draw PLAYER SKELETON
+
 		playerShader->bind();
 		playerShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 		player->draw(playerShader, false);
@@ -270,14 +291,14 @@ public:
         
         glDisable(GL_BLEND);
 
-        phongShader->bind();
-        phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        platformShader->bind();
+        platformShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 
         // Draw platforms
         for (unsigned int i = 0; i < platforms.size(); i++) {
-            platforms[i].draw(phongShader, false);
+            platforms[i].draw(platformShader);
         }
-		phongShader->unbind();
+		platformShader->unbind();
 
 		waterShader->bind();
 		waterShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
@@ -315,6 +336,7 @@ public:
         healthbarShader->setMVP(&M[0][0], &V_nahh[0][0], &P[0][0]);
         healthbar->draw(healthbarShader);
 
+        waterbar->draw(healthbarShader);
         healthbarShader->unbind();
 
 		crosshairShader->bind();

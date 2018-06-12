@@ -1,14 +1,14 @@
-#include "Healthbar.h"
+#include "Waterbar.h"
 #include "Program.h"
 
-Healthbar::Healthbar(float _width) {
+Waterbar::Waterbar(float _width) {
 	width = _width;
 
-	color = glm::vec3(1.f, 0.f, 0.f);
+	color = glm::vec3(0.f, 0.f, 1.f);
 	init();
 }
 
-void Healthbar::init() {
+void Waterbar::init() {
 	// Generate VAO
 	glGenVertexArrays(1, &vaoID);
 	glBindVertexArray(vaoID);
@@ -20,10 +20,10 @@ void Healthbar::init() {
 	// Copy vertex positions to buffer
 	glBufferData(GL_ARRAY_BUFFER, sizeof(posBuf), posBuf, GL_DYNAMIC_DRAW);
 
-	glGenBuffers(1, &healthBufID);
-	glBindBuffer(GL_ARRAY_BUFFER, healthBufID);
+	glGenBuffers(1, &waterBufID);
+	glBindBuffer(GL_ARRAY_BUFFER, waterBufID);
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(healthBuf), healthBuf, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(waterBuf), waterBuf, GL_STATIC_DRAW);
 
 	// Generate Element array
 	glGenBuffers(1, &eleBufID);
@@ -35,12 +35,12 @@ void Healthbar::init() {
 	glBindVertexArray(0);
 }
 
-void Healthbar::update(float _health) {
-	health = _health;
+void Waterbar::update(float _water) {
+	water = std::max(_water, 0.f);
 }
 
-void Healthbar::draw(const std::shared_ptr<Program> prog) const {
-	prog->setFloat("health", health);
+void Waterbar::draw(const std::shared_ptr<Program> prog) const {
+	prog->setFloat("health", water);
 	prog->setFloat("width", width);
 
 	prog->setVector3("c", color.x, color.y, color.z);
@@ -54,7 +54,7 @@ void Healthbar::draw(const std::shared_ptr<Program> prog) const {
 
 	int right_left = prog->getAttribute("right_or_left");
 	GLSL::enableVertexAttribArray(right_left);
-	glBindBuffer(GL_ARRAY_BUFFER, healthBufID);
+	glBindBuffer(GL_ARRAY_BUFFER, waterBufID);
 	glVertexAttribPointer(right_left, 1, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);

@@ -28,8 +28,8 @@ Water::Water(glm::vec2 playerPos, glm::vec2 mousePos, glm::vec2 playerVel, std::
 	vel.x *= (velocity_scalar * rand_x);
 	vel.y *= (velocity_scalar * rand_y);
 
-	//vel.x += playerVel.x;
-	//vel.y += playerVel.y;
+	vel.x += playerVel.x;
+	vel.y += playerVel.y;
 
 	color = (rand() / (float)RAND_MAX);
 

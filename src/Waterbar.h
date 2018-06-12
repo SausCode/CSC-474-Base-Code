@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef HEALTHBAR_H
-#define HEALTHBAR_H
+#ifndef WATERBAR_H
+#define WATERBAR_H
 
 #include <vector>
 #include <memory>
@@ -10,13 +10,13 @@
 
 class Program;
 
-class Healthbar {
+class Waterbar {
 
 public:
-    Healthbar(float width);
+    Waterbar(float width);
 
     void init();
-    void update(float health);
+    void update(float water);
     void draw(const std::shared_ptr<Program> prog) const;
 
 private:
@@ -27,13 +27,13 @@ private:
     };
 
     GLfloat posBuf[12] = {
-        50.0, 50.0, 1.0, // Bottom left
-        50.0, 50.0, 1.0, // Bottom right
-        50.0, 75.0, 1.0, // Top right
-        50.0, 75.0, 1.0, // Top left
+        50.0, 15.0, 1.0, // Bottom left
+        50.0, 15.0, 1.0, // Bottom right
+        50.0, 40.0, 1.0, // Top right
+        50.0, 40.0, 1.0, // Top left
     };
 
-    GLfloat healthBuf[4] = {
+    GLfloat waterBuf[4] = {
         0.0, // Bottom left
         1.0, // Bottom right
         1.0, // Top right
@@ -42,11 +42,11 @@ private:
 
     unsigned int eleBufID = 0;
     unsigned int posBufID = 0;
-    unsigned int healthBufID = 0;
+    unsigned int waterBufID = 0;
     unsigned int vaoID = 0;
 
     float width;
-    float health;
+    float water;
 
     glm::vec3 color;
 };

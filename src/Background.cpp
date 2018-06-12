@@ -10,10 +10,10 @@ Background::Background(int _screenWidth, int _screenHeight) {
 	pos = glm::vec2(0.f);
 
 	posBuf = {
-		-(float)screenWidth, 0.f, -10.f, 								// Bottom left
+		-(float)screenWidth, 0.f, -10.f, 					// Bottom left
 		(float)screenWidth * 2, 0.f, -10.f, 				// Bottom right
 		(float)screenWidth * 2, (float)screenHeight, -10.f, // Top right
-		-(float)screenWidth, (float)screenHeight, -10.f,				// Top left
+		-(float)screenWidth, (float)screenHeight, -10.f,	// Top left
 	};
 
 	init();

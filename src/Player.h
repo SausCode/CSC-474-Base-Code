@@ -31,6 +31,8 @@ public:
 	bool checkPlatformUp();
 	bool checkPlatformDown();
 
+	void addWaterVelocity(double xPosMouse, double yPosMouse, double frametime);
+
 	Hitbox getHitbox();
 
 	glm::vec2 pos, vel;
@@ -40,6 +42,8 @@ public:
 	std::vector<Platform> platforms;
 
 	float health = 100.f;
+
+	float water = 100.f;
 
 private:
 	std::shared_ptr<Shape> shape;
@@ -52,8 +56,14 @@ private:
 
 	const int WALK_VEL = 8;
 	const int JUMP_VEL = 10;
-	const int FRICTION = 0;
+	const int FRICTION = 20;
 	const int GRAVITY = 20;
+
+	const float MAX_X_VEL = 10.f;
+	const float MAX_Y_VEL = 8.f;
+
+	const int WATER_SCALAR = 35;
+	
 	float rotateY = -90.0;
 	const glm::vec3 scale = glm::vec3(100, 100, 50);
 

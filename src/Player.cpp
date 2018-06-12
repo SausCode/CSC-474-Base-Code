@@ -97,10 +97,13 @@ void Player::updatePlayerAnimation(double frametime) {
 void Player::update(double frametime) {
 	if (reset) {
 		//Resets player back to start
-		pos.x = platforms[0].left;
-		pos.y = platforms[0].top;
+		pos.x = platforms[0].left + 100;
+		pos.y = platforms[0].top + 10;
 		vel.x = 0;
 		vel.y = 0;
+
+		water = 100.f;
+		health = 100.f;
 	}
 
 	vel.y -= frametime * GRAVITY;
@@ -114,8 +117,19 @@ void Player::update(double frametime) {
 		vel.x += 50 * frametime;
 		vel.x = std::min(vel.x, (float)WALK_VEL);
 	}
-	if (!left && !right) {
-		vel.x *= frametime * FRICTION;
+	if (!left && !right && !isJumping) {
+		// Not pressing left or right - apply friction
+		if (vel.x > 0.f) {
+			// Moving right
+			vel.x = std::max(0.f, vel.x - ((float)frametime * FRICTION));
+		}
+		else if (vel.x < 0.f) {
+			// Moving left
+			vel.x = std::min(0.f, vel.x + ((float)frametime * FRICTION));
+		}
+		else {
+			vel.x = 0.f;
+		}
 	}
 	if (jump && !isJumping) {
 		vel.y = JUMP_VEL;
@@ -139,6 +153,7 @@ void Player::update(double frametime) {
 
 	if (vel.y < 0.01f) {
 		// moving down - Check if moving down would hit any platforms
+		isJumping = true;
 		if (checkPlatformDown()) {
 			// Player would hit a platform moving down!
 			vel.y = 0;
@@ -147,6 +162,7 @@ void Player::update(double frametime) {
 	}
 	else if (vel.y > 0.01f) {
 		// moving up - Check if moving up would hit any platforms
+		isJumping = true;
 		if (checkPlatformUp()) {
 			vel.y = 0;
 		}
@@ -185,9 +201,8 @@ void Player::draw(const std::shared_ptr<Program> prog, bool use_extern_texures) 
 	glBindVertexArray(playerVAO);
 	glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 	glUniformMatrix4fv(prog->getUniform("Manim"), 200, GL_FALSE, &animmat[0][0][0]);
+	glEnable(GL_LINE_SMOOTH);
 	glDrawArrays(GL_LINES, 4, size_stick - 4);
-
-	//prog->setMatrix("M", &M[0][0]);
 
 	glBindVertexArray(0);
 }
@@ -270,4 +285,23 @@ bool Player::checkPlatformDown() {
 	}
 
 	return false;
+}
+
+void Player::addWaterVelocity(double xPosMouse, double yPosMouse, double frametime) {
+	glm::vec2 direction = glm::vec2(pos.x - (float)xPosMouse, pos.y - (float)yPosMouse);
+	direction = glm::normalize(direction);
+
+	if (direction.x > 0) {
+		vel.x = std::min(vel.x + (WATER_SCALAR * direction.x * (float)frametime), MAX_X_VEL);
+	}
+	else {
+		vel.x = std::max(vel.x + (WATER_SCALAR * direction.x * (float)frametime), -MAX_X_VEL);
+	}
+
+	if (direction.y > 0) {
+		vel.y = std::min(vel.y + (WATER_SCALAR * direction.y * (float)frametime), MAX_Y_VEL);
+	}
+	else {
+		vel.y = vel.y + (WATER_SCALAR * direction.y * (float)frametime);
+	}
 }
