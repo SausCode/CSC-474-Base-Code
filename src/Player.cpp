@@ -92,7 +92,7 @@ void Player::updatePlayerAnimation(double frametime) {
 		int next_animation = 0;
 	}*/
 
-	if (vel.x < speedEpsilon && vel.x > -speedEpsilon) {
+	if ((vel.x < speedEpsilon && vel.x > -speedEpsilon) || isJumping) {
 		/*frame = 0;*/
 	}
 	else {
@@ -197,13 +197,16 @@ void Player::update(double frametime) {
 	//Left
 	if (lastLeft) {
 		rotateAnglePositive = 0.0;
+		float angle = std::max(-rotateY, -(float)std::pow(rotateAngleNegative -= -1, 1.5));
 		//Kinda arbitrary values but I think it looks good
-		M = glm::rotate(M, glm::radians(std::min(-rotateY, (float)std::pow(rotateAngleNegative -=-1,1.5))), glm::vec3(0, 1, 0));
+		M = glm::rotate(M, glm::radians(angle), glm::vec3(0, 1, 0));
 	}
 	//Right
 	else if(!lastLeft){
 		rotateAngleNegative = 0.0;
-		M = glm::rotate(M, glm::radians(std::max(rotateY, -(float)std::pow(rotateAnglePositive -= -1, 1.5))), glm::vec3(0, 1, 0));
+
+		float angle = std::min(rotateY, (float)std::pow(rotateAnglePositive -= -1, 1.5));
+		M = glm::rotate(M, glm::radians(angle), glm::vec3(0, 1, 0));
 	}
 
 	if (left) {
