@@ -83,7 +83,7 @@ public:
         if (key == GLFW_KEY_D && action == GLFW_PRESS) {player->right = true;}
         if (key == GLFW_KEY_D && action == GLFW_RELEASE) {player->right = false;}
 
-        if (key == GLFW_KEY_W && action == GLFW_PRESS) {player->jump = true;}
+		if (key == GLFW_KEY_W && action == GLFW_PRESS) { player->jump = true; player->justJumped = true; }
         if (key == GLFW_KEY_W && action == GLFW_RELEASE) {player->jump = false;}
 
 		if (key == GLFW_KEY_R && action == GLFW_PRESS) { player->reset = true; }

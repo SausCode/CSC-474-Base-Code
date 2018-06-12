@@ -22,10 +22,14 @@ Player::Player(float xpos, float ypos) {
 
 void Player::loadAnimations(const std::string& animationDirectory) {
 	//Load player animations
-	//readtobone(animationDirectory + "/Walking with CannonChar00.fbx", &root, &all_animation);
-	readtobone(animationDirectory + "/walk.fbx", &root, &all_animation);
-	readtobone(animationDirectory + "/run.fbx", NULL, &all_animation);
+	readtobone(animationDirectory + "/walkWithCannon.fbx", &root, &all_animation);
+	//readtobone(animationDirectory + "/run.fbx", NULL, &all_animation);
+	readtobone(animationDirectory + "/jumpWithCannonQuick.fbx", NULL, &all_animation);
+
+
 	root->set_animations(&all_animation, animmat, animmatsize);
+
+	cout << "All animations size: " << all_animation.animations.size() << std::endl;
 
 	//generate the VAO
 	glGenVertexArrays(1, &playerVAO);
@@ -70,12 +74,26 @@ void Player::updatePlayerAnimation(double frametime) {
 	for (int ii = 0; ii < 200; ii++)
 		animmat[ii] = mat4(1);
 
-	static int current_animation = 1;
-	static int next_animation = 1;
+
+
+	static int current_animation = 0;
+	static int next_animation = 0;
+
 
 	//animation frame system
-	int anim_step_width_ms = root->getDuration(next_animation) / root->getKeyFrameCount(next_animation);
+	int anim_step_width_ms = (root->getDuration(next_animation) / root->getKeyFrameCount(next_animation))/10;
 	static int frame = 0;
+
+	if (isJumping) {
+		int current_animation = 1;
+		int next_animation = 1;
+		frame = 0;
+	}
+	else {
+		int current_animation = 0;
+		int next_animation = 0;
+	}
+
 	if (vel.x == 0) {
 		/*frame = 0;*/
 	}
@@ -154,7 +172,7 @@ void Player::update(double frametime) {
 
 	pos += vel;
 	
-	M = glm::translate(glm::mat4(1), glm::vec3(pos, -10.f));
+	M = glm::translate(glm::mat4(1), glm::vec3(pos, -20.f));
 
 	static bool lastLeft = false;
 	static float rotateAngleNegative = 0.0;
@@ -178,7 +196,7 @@ void Player::update(double frametime) {
 		lastLeft = false;
 	}
 
-	M = glm::scale(M, vec3(.2, .2, .2));
+	M = glm::scale(M, vec3(1.2, 1.2, 1.2));
 }
 
 void Player::draw(const std::shared_ptr<Program> prog, bool use_extern_texures) {

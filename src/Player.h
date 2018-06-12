@@ -37,6 +37,8 @@ public:
 
 	bool left = false, right = false, jump = false, reset = false;
 
+	bool justJumped = false;
+
 	std::vector<Platform> platforms;
 
 	float health = 100.f;
